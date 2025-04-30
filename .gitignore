@@ -4,4 +4,6 @@
 __pycache__
 # Ignore backups
 *.bak
+# Ignore vim swap files
+*.swp
 
