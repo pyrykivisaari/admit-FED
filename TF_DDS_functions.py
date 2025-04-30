@@ -1,12 +1,9 @@
 
 import numpy as np
 from numpy import pi
-import sys
-sys.path.append('/u/05/pkivisaa/unix/tutkimus/optical_modeling/python3/optical_admittance/optical_admittance_package_final')
 import optical_admittance_package as oap
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-sys.path.append('/u/05/pkivisaa/unix/tutkimus/optical_modeling/python3/permittivities')
 import permittivities as perm
 
 
@@ -85,6 +82,32 @@ def set_E_and_K_opt(N_K):
 
 
 
+def set_E_and_K_mater_opt(N_K,mat,Ep=np.array([])):
+    # Set the default photon energies to account for. Set K to only include modes propagating in the material provided
+    # Outputs:
+    #     Ep: Vector including photon energies (in eV)
+    #     K: Matrix including in-plane k numbers (in 1/m)
+    #     Kmax: Vector including the maximum values of K
+    if not Ep.any():
+        N_E = 15
+        Ep = np.concatenate((1.41,np.linspace(1.42,1.48,N_E),1.52,1.56,1.6),axis=None)
+    wl = hplanck*c/Ep/q
+    k0 = 2*pi/wl
+
+    eps_mat = get_permittivities(mat,Ep)
+
+    # Set the maximum K number for each photon energy
+    Nmax = np.squeeze(np.sqrt(eps_mat).real)
+    Kmax = 1.05*Nmax*k0
+
+    K = np.zeros((Ep.size,N_K))
+    for i in range(Ep.size):
+        K[i] = np.linspace(0, Kmax[i], N_K)
+
+    return Ep, K, Kmax
+
+
+
 def set_K(Ep,N_K):
     # Set the K values to account for, with a given energy vector.
     # Outputs:
@@ -119,62 +142,34 @@ def get_permittivities(epslist,Ep):
     #     eps: Matrix including permittivities for each energy and each layer
     
     eps_gaas = perm.permittivity_gaas_palik(Ep)
-    eps_gaas_RBU = perm.permittivity_gaas_RBU(Ep)
-    eps_gaas_n = perm.permittivity_gaas_casey_n(Ep)
-    eps_gaas_p = perm.permittivity_gaas_casey_p(Ep)
-    eps_gaas_lEg = perm.permittivity_gaas_palik_largerEg(Ep)
-    eps_gaas_sEg = perm.permittivity_gaas_palik_smallerEg(Ep)
     eps_algaas = perm.permittivity_algaas_palik(Ep)
     eps_au = perm.permittivity_au_palik(Ep)
     eps_gainp = perm.permittivity_gainp(Ep)
-    eps_gainp_RBU = perm.permittivity_gainp_RBU(Ep)
     eps_ag = perm.permittivity_ag_palik(Ep)
-    eps_ag_RBU = perm.permittivity_ag_RBU(Ep)
     eps_mgf2 = perm.permittivity_mgf2(Ep)
-    eps_mgf2_RBU = perm.permittivity_mgf2_RBU(Ep)
     eps_zns = perm.permittivity_zns(Ep)
-    eps_znse_RBU = perm.permittivity_znse_RBU(Ep)
-    #eps_air = np.ones(Ep.size)+1e-3*1j
     eps_air = np.ones(Ep.size)
     
     eps = np.zeros((len(epslist),Ep.size), dtype=complex)
     for i in range(len(epslist)):
         if epslist[i]=='gaas':
             eps[i] = eps_gaas
-        elif epslist[i]=='gaas_RBU':
-            eps[i] = eps_gaas_RBU
-        elif epslist[i]=='gaas_n':
-            eps[i] = eps_gaas_n
-        elif epslist[i]=='gaas_p':
-            eps[i] = eps_gaas_p
         elif epslist[i]=='gaas_lossless':
             eps[i] = np.abs(eps_gaas)+1e-6*1j
-        elif epslist[i]=='gaas_largerEg':
-            eps[i] = eps_gaas_lEg
-        elif epslist[i]=='gaas_smallerEg':
-            eps[i] = eps_gaas_sEg
         elif epslist[i]=='algaas':
             eps[i] = eps_algaas
         elif epslist[i]=='au':
             eps[i] = eps_au
         elif epslist[i]=='gainp':
             eps[i] = eps_gainp
-        elif epslist[i]=='gainp_RBU':
-            eps[i] = eps_gainp_RBU
         elif epslist[i]=='ingap':
             eps[i] = eps_gainp
         elif epslist[i]=='ag':
             eps[i] = eps_ag
-        elif epslist[i]=='ag_RBU':
-            eps[i] = eps_ag_RBU
         elif epslist[i]=='mgf2':
             eps[i] = eps_mgf2
-        elif epslist[i]=='mgf2_RBU':
-            eps[i] = eps_mgf2_RBU
         elif epslist[i]=='zns':
             eps[i] = eps_zns
-        elif epslist[i]=='znse_RBU':
-            eps[i] = eps_znse_RBU
         elif epslist[i]=='air':
             eps[i] = eps_air
         elif epslist[i]=='lossy_air':
