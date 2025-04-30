@@ -4,13 +4,12 @@ import optical_admittance_package as oap
 import numpy as np
 from numpy import pi
 import TF_DDS_functions as tf
-import TF_LED_functions as led
 import matplotlib.pyplot as plt
 
 c = 299792458 
 hplanck = 6.626e-34
 q = 1.602e-19
-Ep, kx, Kmax = led.set_E_and_K_mater_opt(100,['algaas'])
+Ep, kx, Kmax = tf.set_E_and_K_mater_opt(100,['algaas'])
 wl = hplanck*c/Ep/q
 k0 = 2*pi/wl
 
