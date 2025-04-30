@@ -250,26 +250,26 @@ def electric_greens_functions(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma_r_
     
     if not index==0:
         seq_dec = np.arange(index+1)[::-1]
-        Ufactor_gee11[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq_dec]*gamma_r_TE[seq_dec], \
+        Ufactor_gee11[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq_dec]*gamma_r_TE[seq_dec], \
             z[seq_dec])),axis=None))
-        Ufactor_gee22[seq_dec] = gamma_r_TM[index]*gamma_l_TM[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz( \
+        Ufactor_gee22[seq_dec] = gamma_r_TM[index]*gamma_l_TM[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid( \
             eps_z[seq_dec]*gamma_l_TM[seq_dec],z[seq_dec])),axis=None))
-        Ufactor_gee33[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq_dec]*gamma_l_TM[seq_dec], \
+        Ufactor_gee33[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq_dec]*gamma_l_TM[seq_dec], \
             z[seq_dec])),axis=None))
-        Ufactor_gee23[seq_dec] = gamma_l_TM[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq_dec]* \
+        Ufactor_gee23[seq_dec] = gamma_l_TM[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq_dec]* \
             gamma_r_TM[seq_dec],z[seq_dec])),axis=None))
-        Ufactor_gee32[seq_dec] = -gamma_r_TM[index]*np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq_dec]* \
+        Ufactor_gee32[seq_dec] = -gamma_r_TM[index]*np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq_dec]* \
             gamma_l_TM[seq_dec],z[seq_dec])),axis=None))
     
     if not index==(z.size-1):
         seq = np.linspace(index,(z.size-1),(z.size-index),dtype=int)
-        Ufactor_gee11[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq]*gamma_l_TE[seq],z[seq])),axis=None))
-        Ufactor_gee22[seq] = gamma_l_TM[index]*gamma_r_TM[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz( \
+        Ufactor_gee11[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq]*gamma_l_TE[seq],z[seq])),axis=None))
+        Ufactor_gee22[seq] = gamma_l_TM[index]*gamma_r_TM[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid( \
             eps_z[seq]*gamma_r_TM[seq],z[seq])),axis=None))
-        Ufactor_gee33[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq]*gamma_r_TM[seq],z[seq])),axis=None))
-        Ufactor_gee23[seq] = -gamma_r_TM[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq]*gamma_l_TM[seq], \
+        Ufactor_gee33[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq]*gamma_r_TM[seq],z[seq])),axis=None))
+        Ufactor_gee23[seq] = -gamma_r_TM[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq]*gamma_l_TM[seq], \
             z[seq])),axis=None))
-        Ufactor_gee32[seq] = gamma_l_TM[index]*np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq]*gamma_r_TM[seq], \
+        Ufactor_gee32[seq] = gamma_l_TM[index]*np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq]*gamma_r_TM[seq], \
             z[seq])),axis=None))
     
     gee11 = -1j/k0*1/(gamma_r_TE+gamma_l_TE)*Ufactor_gee11
@@ -316,24 +316,24 @@ def exchange_greens_functions_me(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma
     
     if not index==0:
         seq_dec = np.arange(index+1)[::-1]
-        Ufactor_me12[seq_dec] = -gamma_r_TM[index]*np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq_dec]* \
+        Ufactor_me12[seq_dec] = -gamma_r_TM[index]*np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq_dec]* \
             gamma_l_TM[seq_dec],z[seq_dec])),axis=None))
-        Ufactor_me13[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq_dec]*gamma_l_TM[seq_dec], \
+        Ufactor_me13[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq_dec]*gamma_l_TM[seq_dec], \
             z[seq_dec])),axis=None))
-        Ufactor_me21[seq_dec] = gamma_l_TE[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq_dec]* \
+        Ufactor_me21[seq_dec] = gamma_l_TE[seq_dec]*np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq_dec]* \
             gamma_r_TE[seq_dec],z[seq_dec])),axis=None))
-        Ufactor_me31[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq_dec]*gamma_r_TE[seq_dec], \
+        Ufactor_me31[seq_dec] = np.exp(1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq_dec]*gamma_r_TE[seq_dec], \
             z[seq_dec])),axis=None))
     
     if not index==(z.size-1):
         seq = np.linspace(index,(z.size-1),(z.size-index),dtype=int)
-        Ufactor_me12[seq] = gamma_l_TM[index]*np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq]* \
+        Ufactor_me12[seq] = gamma_l_TM[index]*np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq]* \
             gamma_r_TM[seq],z[seq])),axis=None))
-        Ufactor_me13[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(eps_z[seq]*gamma_r_TM[seq], \
+        Ufactor_me13[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(eps_z[seq]*gamma_r_TM[seq], \
             z[seq])),axis=None))
-        Ufactor_me21[seq] = -gamma_r_TE[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq]* \
+        Ufactor_me21[seq] = -gamma_r_TE[seq]*np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq]* \
             gamma_l_TE[seq],z[seq])),axis=None))
-        Ufactor_me31[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumtrapz(mu_z[seq]*gamma_l_TE[seq],
+        Ufactor_me31[seq] = np.exp(-1j*k0*np.concatenate((0,integrate.cumulative_trapezoid(mu_z[seq]*gamma_l_TE[seq],
             z[seq])),axis=None))
     
     gme12 = 1/k0*1/(gamma_r_TM[index]+gamma_l_TM[index])*Ufactor_me12
