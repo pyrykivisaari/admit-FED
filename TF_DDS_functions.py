@@ -16,99 +16,8 @@ eps0 = 8.854e-12
 mu0 = 1.257e-6
 
 
-def set_E_and_K():
-    # Set the default photon energies to account for.
-    # Outputs:
-    #     Ep: Vector including photon energies (in eV)
-    #     K: Matrix including in-plane k numbers (in 1/m)
-    #     Kmax: Vector including the maximum values of K
-    #     N_K: Number of K values for each Ep
-    #N_E = 10
-    N_E = 15
-    Ep = np.concatenate((1.41,np.linspace(1.42,1.48,N_E),1.52,1.56,1.6),axis=None)
-    #Ep = np.concatenate((1.39,1.40,1.41,np.linspace(1.42,1.48,N_E),1.52,1.56,1.6),axis=None)
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-    
-    eps_gaas = perm.permittivity_gaas_palik(Ep)
-    eps_algaas = perm.permittivity_algaas_palik(Ep)
-    eps_gainp = perm.permittivity_gainp(Ep)
-    
-    # Set the maximum K number for each photon energy
-    Nsemicond = np.sqrt(np.array([eps_algaas, eps_gaas, eps_gainp])).real
-    Nmax = Nsemicond.max(0)
-    Kmax = 1.0494*Nmax*k0
-    #Kmax = 1.5*Nmax*k0
-    #N_K = 40
-    #N_K = 80
-    N_K = 159
-    #N_K = 317
-    
-    K = np.zeros((Ep.size,N_K))
-    for i in range(Ep.size):
-        K[i] = np.linspace(0, Kmax[i], N_K)
 
-    return Ep, K, Kmax, N_K
-
-
-
-def set_E_and_K_opt(N_K):
-    # Set the default photon energies to account for.
-    # Outputs:
-    #     Ep: Vector including photon energies (in eV)
-    #     K: Matrix including in-plane k numbers (in 1/m)
-    #     Kmax: Vector including the maximum values of K
-    N_E = 15
-    Ep = np.concatenate((1.41,np.linspace(1.42,1.48,N_E),1.52,1.56,1.6),axis=None)
-    #Ep = np.concatenate((1.38,np.linspace(1.39,1.6,N_E),1.62,1.63,1.65),axis=None)
-    #Ep = np.concatenate((np.linspace(1.4,1.6,N_E),1.61,1.615,1.62,1.625,1.63,1.635,1.64,1.645,1.65),axis=None)
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-
-    eps_gaas = perm.permittivity_gaas_palik(Ep)
-    eps_algaas = perm.permittivity_algaas_palik(Ep)
-    eps_gainp = perm.permittivity_gainp(Ep)
-
-    # Set the maximum K number for each photon energy
-    Nsemicond = np.sqrt(np.array([eps_algaas, eps_gaas, eps_gainp])).real
-    Nmax = Nsemicond.max(0)
-    Kmax = 1.0494*Nmax*k0
-
-    K = np.zeros((Ep.size,N_K))
-    for i in range(Ep.size):
-        K[i] = np.linspace(0, Kmax[i], N_K)
-
-    return Ep, K, Kmax
-
-
-
-def set_E_and_K_mater_opt(N_K,mat,Ep=np.array([])):
-    # Set the default photon energies to account for. Set K to only include modes propagating in the material provided
-    # Outputs:
-    #     Ep: Vector including photon energies (in eV)
-    #     K: Matrix including in-plane k numbers (in 1/m)
-    #     Kmax: Vector including the maximum values of K
-    if not Ep.any():
-        N_E = 15
-        Ep = np.concatenate((1.41,np.linspace(1.42,1.48,N_E),1.52,1.56,1.6),axis=None)
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-
-    eps_mat = get_permittivities(mat,Ep)
-
-    # Set the maximum K number for each photon energy
-    Nmax = np.squeeze(np.sqrt(eps_mat).real)
-    Kmax = 1.05*Nmax*k0
-
-    K = np.zeros((Ep.size,N_K))
-    for i in range(Ep.size):
-        K[i] = np.linspace(0, Kmax[i], N_K)
-
-    return Ep, K, Kmax
-
-
-
-def set_K(Ep,N_K):
+def set_K(Ep,N_K=160,mat='gaas'):
     # Set the K values to account for, with a given energy vector.
     # Outputs:
     #   K: Matrix including in-plane wave numbers (in 1/m)
@@ -116,19 +25,17 @@ def set_K(Ep,N_K):
     wl = hplanck*c/Ep/q
     k0 = 2*pi/wl
     
-    eps_gaas = perm.permittivity_gaas_palik(Ep)
-    eps_algaas = perm.permittivity_algaas_palik(Ep)
-    eps_gainp = perm.permittivity_gainp(Ep)
+    matlist = [mat]
+    eps_mat = get_permittivities(matlist,Ep)
     
     # Set the maximum K number for each photon energy
-    Nsemicond = np.sqrt(np.array([eps_algaas, eps_gaas, eps_gainp])).real
-    Nmax = Nsemicond.max(0)
-    Kmax = 1.0494*Nmax*k0
+    Nmax = np.squeeze(np.sqrt(eps_mat).real)
+    Kmax = 1.05*Nmax*k0
     
     K = np.zeros((Ep.size,N_K))
     for i in range(Ep.size):
         K[i] = np.linspace(0, Kmax[i], N_K)
-    
+
     return K, Kmax
 
 

@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 c = 299792458 
 hplanck = 6.626e-34
 q = 1.602e-19
-Ep, kx, Kmax = tf.set_E_and_K_mater_opt(100,['algaas'])
+Ep = np.concatenate((1.41,np.linspace(1.42,1.48,15),1.52,1.56,1.6),axis=None)
+kx, Kmax = tf.set_K(Ep=Ep,N_K=100,mat='algaas')
 wl = hplanck*c/Ep/q
 k0 = 2*pi/wl
 

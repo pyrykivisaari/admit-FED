@@ -15,7 +15,8 @@ cavity2['L'] = cavity2['L']*1e-9
 cavity2['N'] = np.array([100,Lled,100])
 cavity2['layers'] = ['algaas','gaas','algaas']
 N_K = 80
-Ep, K, Kmax = tf.set_E_and_K_opt(N_K)
+Ep = np.concatenate((1.41,np.linspace(1.42,1.48,15),1.52,1.56,1.6),axis=None)
+K, Kmax = tf.set_K(Ep=Ep,N_K=80)
 cavity2['eps'] = tf.get_permittivities(cavity2['layers'],Ep)
 
 eps_algaas = perm.permittivity_algaas_palik(Ep)
