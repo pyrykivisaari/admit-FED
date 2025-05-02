@@ -845,7 +845,7 @@ def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
 
 
 
-def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.array([]),epssubsR=np.array([])):
+def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=np.array([]),epssubsR=np.array([])):
     # Solve recombination-generation as a function of position and photon
     # energy Ep with source coordinates z0.
     # See the function solve_optical_properties_single_E above for equations.
@@ -859,6 +859,7 @@ def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.
     #    N_K: Desired number of in-plane k number values to perform the calculation for
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    #     T: Temperature in K
     # Outputs:
     #     qte_w: Net recombination-generation rate in TE modes as a function of Ep and z (rad_TE integrated over K)
     #     qtm_w: Net recombination-generation rate in TM modes as a function of Ep and z (rad_TM integrated over K)
@@ -875,21 +876,21 @@ def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.
             if epssubsR.any():
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,epssubsL[i],epssubsR[i])
+                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T,epssubsL[i],epssubsR[i])
             else:
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,epssubsL[i])
+                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T,epssubsL[i])
         else:
             pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                 qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                eps[i],mu[i],L,N,Ep[i],K,z0,dEF)
+                eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T)
     
     return qte_w, qtm_w
 
 
 
-def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.array([]),epssubsR=np.array([])):
+def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=np.array([]),epssubsR=np.array([])):
     # Solve radiances as a function of position and photon
     # energy Ep with source coordinates z0.
     # See the function solve_optical_properties_single_E above for equations.
@@ -903,6 +904,7 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.
     #    N_K: Desired number of in-plane k number values to perform the calculation for
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    #     T: Temperature in K
     # Outputs:
     #     PTE_w: Spectral radiance in TE modes as a function of Ep and z (P_TE integrated over K)
     #     PTM_w: Spectral radiance in TM modes as a function of Ep and z (P_TM integrated over K)
@@ -919,15 +921,15 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,epssubsL=np.
             if epssubsR.any():
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w, qtm_w = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,E,K,z0,dEF,epssubsL[i],epssubsR[i])
+                    eps[i],mu[i],L,N,E,K,z0,dEF,T,epssubsL[i],epssubsR[i])
             else:
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w, qtm_w = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,E,K,z0,dEF,epssubsL[i])
+                    eps[i],mu[i],L,N,E,K,z0,dEF,T,epssubsL[i])
         else:
             pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                 qte_w, qtm_w = solve_optical_properties_single_E(\
-                eps[i],mu[i],L,N,E,K,z0,dEF)
+                eps[i],mu[i],L,N,E,K,z0,dEF,T)
 
         K_mat = np.tile(K,(z.size,1)).T
         PTE_w[i] = np.trapz(P_TE*2*pi*K_mat,K,axis=0)
