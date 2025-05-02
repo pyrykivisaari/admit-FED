@@ -6,4 +6,5 @@ __pycache__
 *.bak
 # Ignore vim swap files
 *.swp
-
+# Ignore the Jupyter notebook checkpoint folder
+*.ipynb_checkpoints/
