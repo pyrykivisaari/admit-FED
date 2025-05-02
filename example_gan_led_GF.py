@@ -55,7 +55,7 @@ for k in range(kx.size):
 		N_2,wl,kx[k],z_2,z0_12,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
 	gme12_12[k], gme13_12[k], gme21_12[k], gme31_12[k] = oap.exchange_greens_functions_me(eps_2,mu_2,N_2,wl,kx[k], \
 		z_2,z0_12,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-	print('Solved for kx=', kx[k]/k0, '\n')
+	print('Solved for kx=', kx[k]/k0)
 
 rho_l_2 = rho_e_2/2+rho_m_2/2
 rho_nl_TE_12, rho_nl_TM_12 = oap.NLDOS_TETM_electric_sources(eps_2,mu_2,N_2,wl,kx,z_2,z0_12,gee11_12,gee22_12,gee33_12,\
@@ -68,22 +68,4 @@ plt.pcolormesh(zplot, kxplot, np.log10(rho_TM_2.real))
 plt.colorbar()
 plt.show()
 
-#plt.pcolormesh(zplot, kxplot, np.log10(np.abs(gee11_12)))
-#plt.colorbar()
-#plt.show()
-
-#plt.pcolormesh(zplot, kxplot, np.log10(np.abs(gee32_12)))
-#plt.colorbar()
-#plt.show()
-
-#plt.pcolormesh(zplot, kxplot, (np.abs(gme31_12)))
-#plt.colorbar()
-#plt.show()
-
-#plt.pcolormesh(zplot, kxplot, (np.abs(rho_if_TE_12)))
-#plt.colorbar()
-#plt.show()
-
-plt.plot(z_2,np.abs(rho_nl_TE_12[0]))
-plt.show()
 
