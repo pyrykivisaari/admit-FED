@@ -602,7 +602,7 @@ def LDOS_derivatives(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
 
 
 
-def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=None,epssubsR=None):
+def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,epssubsR=None):
     # Solve photon numbers, Poynting vectors and recombination-generation rates for a
     # single energy Ep and desired K numbers with source coordinates z0
     # Inputs:
@@ -614,6 +614,7 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=None,epss
     #     kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    #     T: Temperature in K
     # Outputs:
     #     pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
     #        See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
@@ -627,8 +628,6 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=None,epss
     #     qte_w: Net recombination-generation rate in TE modes as a function of z (rad_TE integrated over K)
     #     qtm_w: Net recombination-generation rate in TM modes as a function of z (rad_TM integrated over K)
     
-    #T = 400
-    T = 300
     omega = 2*pi*Ep*q/hplanck
     z = distribute_z_uneven(L,N)
     
@@ -724,10 +723,9 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=None,epss
 
 
 
-def EM_field_fluctuations_single_E(eps,mu,L,N,Ep,kx,z0,dEF):
+def EM_field_fluctuations_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T):
     # This has been used for testing. Not currently used for anything I believe. Whatever this does, I think this
     # was based on Phys. Rev. A 95, 013848 (2017).
-    T = 300
     omega = 2*pi*Ep*q/hplanck
     z = distribute_z_uneven(L,N)
     

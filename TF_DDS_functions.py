@@ -233,7 +233,7 @@ def find_z_given_layer(z,L,ind):
 
 
 
-def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=None,epssubsR=None):
+def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,epssubsR=None):
     # Solve photon numbers, Poynting vectors and recombination-generation for a
     # single energy Ep as a function of position and K number with source
     # coordinates z0.
@@ -252,6 +252,7 @@ def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=No
     #       kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
     #       z0: Vector of source coordinates (in m)
     #       dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    #       T: Temperature in K
     # Outputs:
     #       pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
     #               See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
@@ -268,7 +269,6 @@ def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,epssubsL=No
     #       E2: Complex amplitude of the in-plane component of the TM electric field as a function of K and z
     #       E3: Complex amplitude of the normal component of the TM electric field as a function of K and z
     
-    T = 300
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
     

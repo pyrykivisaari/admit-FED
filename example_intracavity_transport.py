@@ -29,6 +29,7 @@ cavity2['mu'] = np.ones(cavity2['eps'].shape)
 cavity2['z0'] = tf.set_source_coordinates(cavity2['L'],4)
 
 dEF = 1.3
+T = 300
 
 cavity2['z'] = oap.distribute_z_uneven(cavity2['L'],cavity2['N'])
 cavity2['Nc'] = np.cumsum(cavity2['N'])
@@ -43,7 +44,7 @@ cavity2['qtm_wKint'] = np.zeros((Ep.size, K[0].size), dtype=complex)
 for i, E in enumerate(Ep):
     pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
         cavity2['qte_w'][i], cavity2['qtm_w'][i] = oap.solve_optical_properties_single_E(\
-        cavity2['eps'][i],cavity2['mu'][i],cavity2['L'],cavity2['N'],E,K[i],cavity2['z0'],dEF,eps_Ag[i])
+        cavity2['eps'][i],cavity2['mu'][i],cavity2['L'],cavity2['N'],E,K[i],cavity2['z0'],dEF,T,eps_Ag[i])
     cavity2['qte_wK'][i] = rad_TE[:,int(round((cavity2['Nc'][3]+cavity2['Nc'][4])/2))]
     cavity2['qtm_wK'][i] = rad_TM[:,int(round((cavity2['Nc'][3]+cavity2['Nc'][4])/2))]
     cavity2['P_TE_wK'][i] = P_TE[:,int(round((cavity2['Nc'][2]+cavity2['Nc'][3])/2))]
