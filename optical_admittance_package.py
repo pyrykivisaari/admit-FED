@@ -710,10 +710,10 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
         dpdown_TE = alpham_TE*(pdown_TE[j]-eta_QFED)-betam_TE*(pup_TE[j]-eta_QFED)
         dpdown_TM = alpham_TM*(pdown_TM[j]-eta_QFED)-betam_TM*(pup_TM[j]-eta_QFED)
         
-        rad_TE[j] = hplanck/(2*pi)*omega*c/nr_z*1/2*(drho_TE*(pup_TE[j]-pdown_TE[j])+ \
-            rho_TE*(dpup_TE-dpdown_TE))/Ep/q
-        rad_TM[j] = hplanck/(2*pi)*omega*c/nr_z*1/2*(drho_TM*(pup_TM[j]-pdown_TM[j])+ \
-            rho_TM*(dpup_TM-dpdown_TM))/Ep/q
+        rad_TE[j] = c/nr_z*1/2*(drho_TE*(pup_TE[j]-pdown_TE[j])+ \
+            rho_TE*(dpup_TE-dpdown_TE))
+        rad_TM[j] = c/nr_z*1/2*(drho_TM*(pup_TM[j]-pdown_TM[j])+ \
+            rho_TM*(dpup_TM-dpdown_TM))
     
     kx_mat = np.tile(kx,(z.size,1)).T
     qte_w = np.trapz(rad_TE*2*pi*kx_mat,kx,axis=0)
