@@ -53,6 +53,12 @@ for i, E in enumerate(Ep):
     qte_wKint[i] = np.trapezoid(rad_TE[:,Nc[3]:Nc[4]],z[Nc[3]:Nc[4]],axis=1)
     qtm_wKint[i] = np.trapezoid(rad_TM[:,Nc[3]:Nc[4]],z[Nc[3]:Nc[4]],axis=1)
 
+RPtot_te_int_Em, RPtot_te_int_Abs, RPtot_tm_int_Em, RPtot_tm_int_Abs = \
+    tf.calculate_em_abs_powers(L,N,Ep,4,1,qte_w,qtm_w)
+print("Emission power: ", (RPtot_te_int_Em+RPtot_tm_int_Em)*1e-4, "W/cm2")
+print("Absorption power: ", (RPtot_te_int_Abs+RPtot_tm_int_Abs)*1e-4, "W/cm2")
+print("Energy transfer efficiency:", (-RPtot_te_int_Abs-RPtot_tm_int_Abs)/(RPtot_te_int_Em+RPtot_tm_int_Em))
+
 theta = oap.propagation_angles_gaas(Ep[0],K[0])
 Epplot, Tplot = np.meshgrid(Ep, theta)
 
