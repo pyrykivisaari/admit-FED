@@ -250,10 +250,10 @@ def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=
                 gee11[k],gee22[k],gee23[k],gme12,gme13,gme21)
         # Upward and downward photon numbers calculated using Eq. (5) of Sci.
         # Rep. 7, 11534 (2017).
-        pup_TE[j] = 1/rho_TE*np.trapz((rho_nl_TE+rho_if_TE)*eta,z0,axis=0)
-        pdown_TE[j] = 1/rho_TE*np.trapz((rho_nl_TE-rho_if_TE)*eta,z0,axis=0)
-        pup_TM[j] = 1/rho_TM*np.trapz((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
-        pdown_TM[j] = 1/rho_TM*np.trapz((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
+        pup_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE+rho_if_TE)*eta,z0,axis=0)
+        pdown_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE-rho_if_TE)*eta,z0,axis=0)
+        pup_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
+        pdown_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
         
         alphap_TE, alpham_TE, betap_TE, betam_TE = oap.RTE_coefficients_TE(eps,mu,N,wl,kx[j], \
             gamma_l_TE,gamma_r_TE)
@@ -276,15 +276,15 @@ def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=
         rad_TM[j] = hplanck/(2*pi)*omega*c/nr_z*1/2*(drho_TM*(pup_TM[j]-pdown_TM[j])+ \
             rho_TM*(dpup_TM-dpdown_TM))/Ep/q
         
-        E1[j] = np.trapz(gee11*1,z0,axis=0)
-        E2[j] = np.trapz(gee22*1+gee23*1,z0,axis=0)
-        E3[j] = np.trapz(gee32*1+gee33*1,z0,axis=0)
+        E1[j] = np.trapezoid(gee11*1,z0,axis=0)
+        E2[j] = np.trapezoid(gee22*1+gee23*1,z0,axis=0)
+        E3[j] = np.trapezoid(gee32*1+gee33*1,z0,axis=0)
         
         N_ledend = N_cumul[3]
-        rad_TE_intpd = np.trapz(rad_TE[j,0:N_ledend],z[0:N_ledend])
-        rad_TE_intled = np.trapz(rad_TE[j,N_ledend:],z[N_ledend:])
-        rad_TM_intpd = np.trapz(rad_TM[j,0:N_ledend],z[0:N_ledend])
-        rad_TM_intled = np.trapz(rad_TM[j,N_ledend:],z[N_ledend:])
+        rad_TE_intpd = np.trapezoid(rad_TE[j,0:N_ledend],z[0:N_ledend])
+        rad_TE_intled = np.trapezoid(rad_TE[j,N_ledend:],z[N_ledend:])
+        rad_TM_intpd = np.trapezoid(rad_TM[j,0:N_ledend],z[0:N_ledend])
+        rad_TM_intled = np.trapezoid(rad_TM[j,N_ledend:],z[N_ledend:])
         if np.abs(rad_TE_intpd) > 2*np.abs(rad_TE_intled):
             failures_TE.append(j)
         if rad_TE_intled < 0:
@@ -306,8 +306,8 @@ def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=
     
     kx_mat_TE = np.tile(kx_TE,(z.size,1)).T
     kx_mat_TM = np.tile(kx_TM,(z.size,1)).T
-    qte_w = np.trapz(rad_TE*2*pi*kx_mat_TE,kx_TE,axis=0)
-    qtm_w = np.trapz(rad_TM*2*pi*kx_mat_TM,kx_TM,axis=0)
+    qte_w = np.trapezoid(rad_TE*2*pi*kx_mat_TE,kx_TE,axis=0)
+    qtm_w = np.trapezoid(rad_TM*2*pi*kx_mat_TM,kx_TM,axis=0)
     
     return pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, qte_w, qtm_w, kx_TE, kx_TM
 
@@ -760,17 +760,17 @@ def calculate_QE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     zIndAbs = find_z_given_layer(z,L,indAbs)
     zIndEm = find_z_given_layer(z,L,indEm)
     
-    Rtot_te = np.trapz(qte_w,omega,axis=0)
-    Rtot_tm = np.trapz(qtm_w,omega,axis=0)
+    Rtot_te = np.trapezoid(qte_w,omega,axis=0)
+    Rtot_tm = np.trapezoid(qtm_w,omega,axis=0)
     
-    qte_w_int_Em = np.trapz(qte_w.T[zIndEm],z[zIndEm],axis=0)
-    qte_w_int_Abs = np.trapz(qte_w.T[zIndAbs],z[zIndAbs],axis=0)
-    qtm_w_int_Em = np.trapz(qtm_w.T[zIndEm],z[zIndEm],axis=0)
-    qtm_w_int_Abs = np.trapz(qtm_w.T[zIndAbs],z[zIndAbs],axis=0)
-    Rtot_te_int_Em = np.trapz(Rtot_te[zIndEm],z[zIndEm])
-    Rtot_te_int_Abs = np.trapz(Rtot_te[zIndAbs],z[zIndAbs])
-    Rtot_tm_int_Em = np.trapz(Rtot_tm[zIndEm],z[zIndEm])
-    Rtot_tm_int_Abs = np.trapz(Rtot_tm[zIndAbs],z[zIndAbs])
+    qte_w_int_Em = np.trapezoid(qte_w.T[zIndEm],z[zIndEm],axis=0)
+    qte_w_int_Abs = np.trapezoid(qte_w.T[zIndAbs],z[zIndAbs],axis=0)
+    qtm_w_int_Em = np.trapezoid(qtm_w.T[zIndEm],z[zIndEm],axis=0)
+    qtm_w_int_Abs = np.trapezoid(qtm_w.T[zIndAbs],z[zIndAbs],axis=0)
+    Rtot_te_int_Em = np.trapezoid(Rtot_te[zIndEm],z[zIndEm])
+    Rtot_te_int_Abs = np.trapezoid(Rtot_te[zIndAbs],z[zIndAbs])
+    Rtot_tm_int_Em = np.trapezoid(Rtot_tm[zIndEm],z[zIndEm])
+    Rtot_tm_int_Abs = np.trapezoid(Rtot_tm[zIndAbs],z[zIndAbs])
     
     qe_w_te = -qte_w_int_Abs/qte_w_int_Em
     qe_w_tm = -qtm_w_int_Abs/qtm_w_int_Em
@@ -806,17 +806,17 @@ def calculate_PCE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     Pqte_w = qte_w*Ep_mat*q
     Pqtm_w = qtm_w*Ep_mat*q
     
-    RPtot_te = np.trapz(Pqte_w,omega,axis=0)
-    RPtot_tm = np.trapz(Pqtm_w,omega,axis=0)
+    RPtot_te = np.trapezoid(Pqte_w,omega,axis=0)
+    RPtot_tm = np.trapezoid(Pqtm_w,omega,axis=0)
     
-    Pqte_w_int_Em = np.trapz(Pqte_w.T[zIndEm],z[zIndEm],axis=0)
-    Pqte_w_int_Abs = np.trapz(Pqte_w.T[zIndAbs],z[zIndAbs],axis=0)
-    Pqtm_w_int_Em = np.trapz(Pqtm_w.T[zIndEm],z[zIndEm],axis=0)
-    Pqtm_w_int_Abs = np.trapz(Pqtm_w.T[zIndAbs],z[zIndAbs],axis=0)
-    RPtot_te_int_Em = np.trapz(RPtot_te[zIndEm],z[zIndEm])
-    RPtot_te_int_Abs = np.trapz(RPtot_te[zIndAbs],z[zIndAbs])
-    RPtot_tm_int_Em = np.trapz(RPtot_tm[zIndEm],z[zIndEm])
-    RPtot_tm_int_Abs = np.trapz(RPtot_tm[zIndAbs],z[zIndAbs])
+    Pqte_w_int_Em = np.trapezoid(Pqte_w.T[zIndEm],z[zIndEm],axis=0)
+    Pqte_w_int_Abs = np.trapezoid(Pqte_w.T[zIndAbs],z[zIndAbs],axis=0)
+    Pqtm_w_int_Em = np.trapezoid(Pqtm_w.T[zIndEm],z[zIndEm],axis=0)
+    Pqtm_w_int_Abs = np.trapezoid(Pqtm_w.T[zIndAbs],z[zIndAbs],axis=0)
+    RPtot_te_int_Em = np.trapezoid(RPtot_te[zIndEm],z[zIndEm])
+    RPtot_te_int_Abs = np.trapezoid(RPtot_te[zIndAbs],z[zIndAbs])
+    RPtot_tm_int_Em = np.trapezoid(RPtot_tm[zIndEm],z[zIndEm])
+    RPtot_tm_int_Abs = np.trapezoid(RPtot_tm[zIndAbs],z[zIndAbs])
     
     pce_w_te = -Pqte_w_int_Abs/Pqte_w_int_Em
     pce_w_tm = -Pqtm_w_int_Abs/Pqtm_w_int_Em
@@ -852,13 +852,13 @@ def calculate_em_abs_powers(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     Pqte_w = qte_w*Ep_mat*q
     Pqtm_w = qtm_w*Ep_mat*q
     
-    RPtot_te = np.trapz(Pqte_w,omega,axis=0)
-    RPtot_tm = np.trapz(Pqtm_w,omega,axis=0)
+    RPtot_te = np.trapezoid(Pqte_w,omega,axis=0)
+    RPtot_tm = np.trapezoid(Pqtm_w,omega,axis=0)
     
-    RPtot_te_int_Em = np.trapz(RPtot_te[zIndEm],z[zIndEm])
-    RPtot_te_int_Abs = np.trapz(RPtot_te[zIndAbs],z[zIndAbs])
-    RPtot_tm_int_Em = np.trapz(RPtot_tm[zIndEm],z[zIndEm])
-    RPtot_tm_int_Abs = np.trapz(RPtot_tm[zIndAbs],z[zIndAbs])
+    RPtot_te_int_Em = np.trapezoid(RPtot_te[zIndEm],z[zIndEm])
+    RPtot_te_int_Abs = np.trapezoid(RPtot_te[zIndAbs],z[zIndAbs])
+    RPtot_tm_int_Em = np.trapezoid(RPtot_tm[zIndEm],z[zIndEm])
+    RPtot_tm_int_Abs = np.trapezoid(RPtot_tm[zIndAbs],z[zIndAbs])
     
     return RPtot_te_int_Em, RPtot_te_int_Abs, RPtot_tm_int_Em, RPtot_tm_int_Abs
 
@@ -889,13 +889,13 @@ def calculate_em_abs_powers_E_integration(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     Pqte_w = qte_w*Ep_mat*q/hplanck*2*pi
     Pqtm_w = qtm_w*Ep_mat*q/hplanck*2*pi
     
-    RPtot_te = np.trapz(Pqte_w,Ep*q,axis=0)
-    RPtot_tm = np.trapz(Pqtm_w,Ep*q,axis=0)
+    RPtot_te = np.trapezoid(Pqte_w,Ep*q,axis=0)
+    RPtot_tm = np.trapezoid(Pqtm_w,Ep*q,axis=0)
     
-    RPtot_te_int_Em = np.trapz(RPtot_te[zIndEm],z[zIndEm])
-    RPtot_te_int_Abs = np.trapz(RPtot_te[zIndAbs],z[zIndAbs])
-    RPtot_tm_int_Em = np.trapz(RPtot_tm[zIndEm],z[zIndEm])
-    RPtot_tm_int_Abs = np.trapz(RPtot_tm[zIndAbs],z[zIndAbs])
+    RPtot_te_int_Em = np.trapezoid(RPtot_te[zIndEm],z[zIndEm])
+    RPtot_te_int_Abs = np.trapezoid(RPtot_te[zIndAbs],z[zIndAbs])
+    RPtot_tm_int_Em = np.trapezoid(RPtot_tm[zIndEm],z[zIndEm])
+    RPtot_tm_int_Abs = np.trapezoid(RPtot_tm[zIndAbs],z[zIndAbs])
     
     return RPtot_te_int_Em, RPtot_te_int_Abs, RPtot_tm_int_Em, RPtot_tm_int_Abs
 
@@ -922,13 +922,13 @@ def calculate_em_abs_rates(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     zIndAbs = find_z_given_layer(z,L,indAbs)
     zIndEm = find_z_given_layer(z,L,indEm)
 
-    Rtot_te = np.trapz(qte_w,omega,axis=0)
-    Rtot_tm = np.trapz(qtm_w,omega,axis=0)
+    Rtot_te = np.trapezoid(qte_w,omega,axis=0)
+    Rtot_tm = np.trapezoid(qtm_w,omega,axis=0)
 
-    Rtot_te_int_Em = np.trapz(Rtot_te[zIndEm],z[zIndEm])
-    Rtot_te_int_Abs = np.trapz(Rtot_te[zIndAbs],z[zIndAbs])
-    Rtot_tm_int_Em = np.trapz(Rtot_tm[zIndEm],z[zIndEm])
-    Rtot_tm_int_Abs = np.trapz(Rtot_tm[zIndAbs],z[zIndAbs])
+    Rtot_te_int_Em = np.trapezoid(Rtot_te[zIndEm],z[zIndEm])
+    Rtot_te_int_Abs = np.trapezoid(Rtot_te[zIndAbs],z[zIndAbs])
+    Rtot_tm_int_Em = np.trapezoid(Rtot_tm[zIndEm],z[zIndEm])
+    Rtot_tm_int_Abs = np.trapezoid(Rtot_tm[zIndAbs],z[zIndAbs])
 
     return Rtot_te_int_Em, Rtot_te_int_Abs, Rtot_tm_int_Em, Rtot_tm_int_Abs
 
@@ -940,8 +940,8 @@ def calculate_RG_spectra(L,N,indAbs,qte_w,qtm_w):
     z = oap.distribute_z_uneven(L,N)
     zIndAbs = find_z_given_layer(z,L,indAbs)
 
-    R_te_Abs = np.trapz(qte_w[:,zIndAbs],z[zIndAbs])
-    R_tm_Abs = np.trapz(qtm_w[:,zIndAbs],z[zIndAbs])
+    R_te_Abs = np.trapezoid(qte_w[:,zIndAbs],z[zIndAbs])
+    R_tm_Abs = np.trapezoid(qtm_w[:,zIndAbs],z[zIndAbs])
 
     return R_te_Abs, R_tm_Abs
 
@@ -968,13 +968,13 @@ def calculate_total_em_abs_powers(L,N,Ep,qte_w,qtm_w):
     Pqte_w = qte_w*Ep_mat*q
     Pqtm_w = qtm_w*Ep_mat*q
     
-    RPtot_te = np.trapz(Pqte_w,omega,axis=0)
-    RPtot_tm = np.trapz(Pqtm_w,omega,axis=0)
+    RPtot_te = np.trapezoid(Pqte_w,omega,axis=0)
+    RPtot_tm = np.trapezoid(Pqtm_w,omega,axis=0)
     
-    RPtot_te_all_Em = np.trapz(RPtot_te*(RPtot_te>0),z)
-    RPtot_te_all_Abs = np.trapz(RPtot_te*(RPtot_te<0),z)
-    RPtot_tm_all_Em = np.trapz(RPtot_tm*(RPtot_tm>0),z)
-    RPtot_tm_all_Abs = np.trapz(RPtot_tm*(RPtot_tm<0),z)
+    RPtot_te_all_Em = np.trapezoid(RPtot_te*(RPtot_te>0),z)
+    RPtot_te_all_Abs = np.trapezoid(RPtot_te*(RPtot_te<0),z)
+    RPtot_tm_all_Em = np.trapezoid(RPtot_tm*(RPtot_tm>0),z)
+    RPtot_tm_all_Abs = np.trapezoid(RPtot_tm*(RPtot_tm<0),z)
     
     return RPtot_te_all_Em, RPtot_te_all_Abs, RPtot_tm_all_Em, RPtot_tm_all_Abs
 
@@ -996,13 +996,13 @@ def calculate_total_em_abs_rates(L,N,Ep,qte_w,qtm_w):
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
     
-    Rtot_te = np.trapz(qte_w,omega,axis=0)
-    Rtot_tm = np.trapz(qtm_w,omega,axis=0)
+    Rtot_te = np.trapezoid(qte_w,omega,axis=0)
+    Rtot_tm = np.trapezoid(qtm_w,omega,axis=0)
     
-    Rtot_te_all_Em = np.trapz(Rtot_te*(Rtot_te>0),z)
-    Rtot_te_all_Abs = np.trapz(Rtot_te*(Rtot_te<0),z)
-    Rtot_tm_all_Em = np.trapz(Rtot_tm*(Rtot_tm>0),z)
-    Rtot_tm_all_Abs = np.trapz(Rtot_tm*(Rtot_tm<0),z)
+    Rtot_te_all_Em = np.trapezoid(Rtot_te*(Rtot_te>0),z)
+    Rtot_te_all_Abs = np.trapezoid(Rtot_te*(Rtot_te<0),z)
+    Rtot_tm_all_Em = np.trapezoid(Rtot_tm*(Rtot_tm>0),z)
+    Rtot_tm_all_Abs = np.trapezoid(Rtot_tm*(Rtot_tm<0),z)
     
     return Rtot_te_all_Em, Rtot_te_all_Abs, Rtot_tm_all_Em, Rtot_tm_all_Abs
 
@@ -1018,14 +1018,14 @@ def plot_total_rates_energy_spread(L,N,Ep,qte_w,qtm_w):
     #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
         
     omega = 2*pi*Ep*q/hplanck
-    Rtot_te = np.trapz(qte_w,omega,axis=0)
-    Rtot_tm = np.trapz(qtm_w,omega,axis=0)
+    Rtot_te = np.trapezoid(qte_w,omega,axis=0)
+    Rtot_tm = np.trapezoid(qtm_w,omega,axis=0)
     z = oap.distribute_z_uneven(L,N)
     Ep_mat = np.tile(Ep,(z.size,1)).T
     Pqte_w = qte_w*Ep_mat*q
     Pqtm_w = qtm_w*Ep_mat*q
-    RPtot_te = np.trapz(Pqte_w,omega,axis=0)
-    RPtot_tm = np.trapz(Pqtm_w,omega,axis=0)    
+    RPtot_te = np.trapezoid(Pqte_w,omega,axis=0)
+    RPtot_tm = np.trapezoid(Pqtm_w,omega,axis=0)    
     
     plt.figure()
     plt.subplot(141)
