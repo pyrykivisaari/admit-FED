@@ -46,6 +46,10 @@ for i, E in enumerate(Ep):
     qte_wKint[i] = np.trapezoid(rad_TE[:,Nc[0]:Nc[1]],z[Nc[0]:Nc[1]],axis=1)
     qtm_wKint[i] = np.trapezoid(rad_TM[:,Nc[0]:Nc[1]],z[Nc[0]:Nc[1]],axis=1)
 
+RPtot_te_int_Em, RPtot_te_int_Abs, RPtot_tm_int_Em, RPtot_tm_int_Abs = \
+    tf.calculate_total_em_abs_powers(L,N,Ep,qte_w,qtm_w)
+print("Emission power: ", (RPtot_te_int_Em+RPtot_tm_int_Em)*1e-4, "W/cm2")
+
 theta = oap.propagation_angles_gaas(Ep[0],K[0])
 Epplot, Tplot = np.meshgrid(Ep, theta)
 
