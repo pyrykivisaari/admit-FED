@@ -13,7 +13,6 @@ L = np.array([100,Lled,100])
 L = L*1e-9
 N = np.array([100,Lled,100])
 layers = ['algaas','gaas','algaas']
-N_K = 80
 Ep = np.concatenate((1.41,np.linspace(1.42,1.48,15),1.52,1.56,1.6),axis=None)
 K, Kmax = tf.set_K(Ep=Ep,N_K=80)
 eps = tf.get_permittivities(layers,Ep)
@@ -74,6 +73,7 @@ plt.figure(figsize=(5.4,2.5)) # Radiance leftwards; this is half of total R in F
 plt.pcolormesh(Epplot, Tplot, np.transpose(-P_TE_wK.real-P_TM_wK.real)*np.cos(Tplot/180*pi)*np.sin(Tplot/180*pi), cmap='gnuplot', shading='gouraud')
 plt.xlabel('Photon energy (eV)')
 plt.ylabel('Angle (deg.)')
+plt.xlim(1.41,1.55)
 plt.tight_layout()
 plt.colorbar()
 
