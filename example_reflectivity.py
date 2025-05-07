@@ -43,19 +43,19 @@ for i, Len in enumerate(L_gaas):
 plt.figure(figsize=(7.5,7.5))
 plt.subplot(2,1,1)
 for i, Len in enumerate(L_gaas):
-    plt.plot(np.arcsin(kx[ind]/np.abs(np.sqrt(eps[ind,0]))/k0[ind])/pi*180,R_r_TE[i],label=str(Len)+' nm GaAs, TE')
-plt.axis([0, 90, 0.75, 1])
-plt.suptitle('Reflection at Ep=' +  str("%.4f" % Ep[ind]) + ' eV')
+    plt.plot(np.arcsin(kx[ind]/np.abs(np.sqrt(eps[ind,0]))/k0[ind])/pi*180,R_r_TE[i],label=str(Len)+' nm GaAs')
+plt.axis([0, 80, 0.75, 1])
+plt.suptitle('Reflectivity with photon energy ' +  str("%.4f" % Ep[ind]) + ' eV')
 plt.xlabel('Angle (deg.)')
-plt.ylabel('Reflectivity')
-plt.legend()
+plt.ylabel('Reflectivity (TE)')
+plt.legend(frameon=False)
 plt.subplot(2,1,2)
 for i, Len in enumerate(L_gaas):
-    plt.plot(np.arcsin(kx[ind]/np.abs(np.sqrt(eps[ind,0]))/k0[ind])/pi*180,R_r_TM[i],'--',label=str(Len)+' nm GaAs, TM')
-plt.axis([0, 90, 0.75, 1])
+    plt.plot(np.arcsin(kx[ind]/np.abs(np.sqrt(eps[ind,0]))/k0[ind])/pi*180,R_r_TM[i],label=str(Len)+' nm GaAs')
+plt.axis([0, 80, 0.75, 1])
 plt.xlabel('Angle (deg.)')
-plt.ylabel('Reflectivity')
-plt.legend()
+plt.ylabel('Reflectivity (TM)')
+plt.legend(frameon=False)
 
 plt.show()
 
