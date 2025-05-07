@@ -45,8 +45,18 @@ for k in range(kx.size):
 rho_l = rho_e/2+rho_m/2
 
 zplot, kxplot = np.meshgrid(z, kx/k0)
-plt.pcolormesh(zplot, kxplot, np.log10(rho_TM.real))
+plt.figure()
+plt.pcolormesh(zplot*1e6, kxplot, np.log10(rho_TE.real),cmap='gnuplot',shading='gouraud')
 plt.colorbar()
+plt.xlabel(r'Position ($\mu$m)')
+plt.ylabel('In-plane K number / k$_0$')
+plt.title('Local DOS for TE modes')
+plt.figure()
+plt.pcolormesh(zplot*1e6, kxplot, np.log10(rho_TM.real),cmap='gnuplot',shading='gouraud')
+plt.colorbar()
+plt.xlabel(r'Position ($\mu$m)')
+plt.ylabel('In-plane K number / k$_0$')
+plt.title('Local DOS for TM modes')
 plt.show()
 
 
