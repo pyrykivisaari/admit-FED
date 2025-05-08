@@ -6,6 +6,7 @@ from scipy import integrate
 import sys
 sys.path.append('/u/05/pkivisaa/unix/tutkimus/optical_modeling/python3/permittivities')
 import permittivities as perm
+import warnings
 
 
 c = 299792458 
@@ -939,6 +940,12 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
 
 
 
+def theta_function(K,nr,k0):
+    warnings.warn("deprecated", RuntimeWarning)
+    thetarad =np.arcsin(K/nr/k0)
+    return thetarad
+
+
 
 def propagation_angles(Ep,K,eps,mu):
     # Help function to calculate the propagation angles corresponding to given in-plane k numbers
@@ -955,9 +962,9 @@ def propagation_angles(Ep,K,eps,mu):
     wl = hplanck*c/Ep/q
     k0 = 2*pi/wl
     
-    # There should be an if-else or try-catch here. Now this gives a warning for K>nr*k0.
-    # But it doesn't give an error.
-    thetarad = np.arcsin(K/nr/k0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        thetarad = theta_function(K,nr,k0)
     theta = thetarad/pi*180
     theta[np.nonzero(np.isnan(theta))]=90
     
@@ -979,12 +986,12 @@ def propagation_angles_gaas(Ep,K):
     wl = hplanck*c/Ep/q
     k0 = 2*pi/wl
     
-    # There should be an if-else or try-catch here. Now this gives a warning for K>nr*k0.
-    # But it doesn't give an error.
-    thetarad = np.arcsin(K/nr/k0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        thetarad = theta_function(K,nr,k0)
     theta = thetarad/pi*180
     theta[np.nonzero(np.isnan(theta))]=90
-    
+
     return theta
 
 
