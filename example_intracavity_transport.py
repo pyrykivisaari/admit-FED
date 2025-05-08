@@ -100,7 +100,7 @@ if False:
     print(kaka*1e-4)
 
 plt.figure(figsize=(4.625,2.55),facecolor=(1,1,1))
-plt.plot(Ep,spectrum_P_E*1e-4)
+plt.plot(Ep,spectrum_P_E.real*1e-4)
 plt.xlim([np.min(Ep), np.max(Ep)])
 plt.xlabel('Photon energy (eV)')
 plt.ylabel(r'Emission power (W/cm$^2$/eV)')
