@@ -69,18 +69,20 @@ wl = hplanck*c/Ep/q
 k0 = 2*pi/wl
 
 plt.figure(figsize=(5.4,2.5))
-plt.pcolormesh(Epplot, Tplot, np.transpose(qte_wKint.real+qtm_wKint.real)*np.cos(Tplot/180*pi)*np.sin(Tplot/180*pi), cmap='gnuplot', shading='gouraud')
+plt.pcolormesh(Epplot, Tplot, np.transpose(qte_wKint.real+qtm_wKint.real)*np.cos(Tplot/180*pi), cmap='gnuplot', shading='gouraud')
 plt.ylabel('Angle (deg.)')
 plt.xlabel('Photon energy (eV)')
 plt.xlim(1.41,1.55)
+plt.title('Emission rate (a.u.)')
 plt.tight_layout()
 plt.colorbar()
 
 plt.figure(figsize=(5.4,2.5))
-plt.pcolormesh(Epplot, Tplot, np.transpose(-P_TE_wK.real-P_TM_wK.real)*np.cos(Tplot/180*pi)*np.sin(Tplot/180*pi), cmap='gnuplot', shading='gouraud')
+plt.pcolormesh(Epplot, Tplot, np.transpose(-P_TE_wK.real-P_TM_wK.real)*np.cos(Tplot/180*pi), cmap='gnuplot', shading='gouraud')
 plt.xlabel('Photon energy (eV)')
 plt.ylabel('Angle (deg.)')
 plt.xlim(1.41,1.55)
+plt.title('Leftward radiance (a.u.)')
 plt.tight_layout()
 plt.colorbar()
 
@@ -88,13 +90,21 @@ spectrum_te_int = np.trapezoid(qte_w[:,Nc[3]:Nc[4]],\
         z[Nc[3]:Nc[4]],axis=1)
 spectrum_tm_int = np.trapezoid(qtm_w[:,Nc[3]:Nc[4]],\
         z[Nc[3]:Nc[4]],axis=1)
+# Multiply by photon energy to give watts, multiply by another factor to change
+# the integration variable from omega to Ep
+spectrum_P_E = (spectrum_te_int+spectrum_tm_int)*(Ep*q)*(2*pi*q/hplanck)
+
+if False:
+    print("Debug: The output from this should be equal to the emission power printed above")
+    kaka = np.trapezoid(spectrum_P_E,Ep)
+    print(kaka*1e-4)
 
 plt.figure(figsize=(4.625,2.55),facecolor=(1,1,1))
-plt.plot(Ep,(spectrum_te_int+spectrum_tm_int)*1e-18,label=r'$d_{cav}=265$ nm')
+plt.plot(Ep,spectrum_P_E*1e-4)
 plt.xlim([np.min(Ep), np.max(Ep)])
 plt.xlabel('Photon energy (eV)')
-plt.ylabel(r'Emission spectrum (10$^{18}$ m$^{-3}$)')
-plt.legend(frameon=False)
+plt.ylabel(r'Emission power (W/cm$^2$/eV)')
+plt.title('Emission spectrum')
 plt.tight_layout()
 
 plt.show()
