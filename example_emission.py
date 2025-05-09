@@ -48,7 +48,7 @@ for i, E in enumerate(Ep):
 
 RPtot_te_int_Em, RPtot_te_int_Abs, RPtot_tm_int_Em, RPtot_tm_int_Abs = \
     tf.calculate_total_em_abs_powers(L,N,Ep,qte_w,qtm_w)
-print("Emission power: ", (RPtot_te_int_Em+RPtot_tm_int_Em)*1e-4, "W/cm2")
+print("Emission power: ", (RPtot_te_int_Em.real+RPtot_tm_int_Em.real)*1e-4, "W/cm2")
 
 theta = oap.propagation_angles_gaas(Ep[0],K[0])
 Epplot, Tplot = np.meshgrid(Ep, theta)
