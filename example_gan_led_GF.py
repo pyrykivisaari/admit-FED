@@ -40,7 +40,7 @@ for k in range(kx.size):
 		epssubs_l,musubs,epssubs_r,musubs)
 	rho_e[k], rho_m[k], rho_TE[k], rho_TM[k] = oap.LDOSes(eps,mu,N,wl,kx[k],gamma_l_TE,gamma_r_TE, \
 		gamma_r_TM,gamma_l_TM)
-	print('Solved for kx=', kx[k]/k0)
+	print('Solved for K/k0=', kx[k]/k0)
 
 rho_l = rho_e/2+rho_m/2
 
