@@ -36,11 +36,12 @@ rho_TE = np.zeros((kx.size, z.size), dtype=complex)
 rho_TM = np.zeros((kx.size, z.size), dtype=complex)
 
 for k in range(kx.size):
-	gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = oap.calculate_all_admittances_uneven(eps,mu,L,N,wl,kx[k], \
-		epssubs_l,musubs,epssubs_r,musubs)
-	rho_e[k], rho_m[k], rho_TE[k], rho_TM[k] = oap.LDOSes(eps,mu,N,wl,kx[k],gamma_l_TE,gamma_r_TE, \
-		gamma_r_TM,gamma_l_TM)
-	print('Solved for K/k0=', kx[k]/k0)
+    gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = oap.calculate_all_admittances_uneven(eps,mu,L,N,wl,kx[k], \
+        epssubs_l,musubs,epssubs_r,musubs)
+    rho_e[k], rho_m[k], rho_TE[k], rho_TM[k] = oap.LDOSes(eps,mu,N,wl,kx[k],gamma_l_TE,gamma_r_TE, \
+        gamma_r_TM,gamma_l_TM)
+    if k%10==0:
+        print('Solved for ',k,' values of K')
 
 rho_l = rho_e/2+rho_m/2
 
@@ -61,7 +62,7 @@ plt.text(0.95,0.1,'GaN',c='w')
 plt.text(2.0,0.1,'Air',c='w')
 plt.xlabel(r'Position ($\mu$m)')
 plt.ylabel('In-plane K number / k$_0$')
-plt.title('Local DOS for TE modes')
+plt.title('Local DOS for TE modes (a.u., log scale)')
 plt.figure()
 plt.pcolormesh(zplot*1e6, kxplot, np.log10(rho_TM.real),cmap='Spectral',shading='gouraud')
 plt.colorbar()
@@ -78,7 +79,7 @@ plt.text(0.95,0.1,'GaN',c='w')
 plt.text(2.0,0.1,'Air',c='w')
 plt.xlabel(r'Position ($\mu$m)')
 plt.ylabel('In-plane K number / k$_0$')
-plt.title('Local DOS for TM modes')
+plt.title('Local DOS for TM modes (a.u., log scale)')
 plt.show()
 
 
