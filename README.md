@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fluctuational electrodynamics of planar multilayer structures with the help of optical admittances
+Fluctuational electrodynamics of planar multilayer structures with the help of optical admittances. For more information on the physics, you may check for instance the [optical admittance paper](https://urn.fi/URN:NBN:fi:aalto-201812216669) or the [intracavity resonances paper](https://urn.fi/URN:NBN:fi:aalto-202211096478).
 
 ## Getting started
 
@@ -15,11 +15,11 @@ There are four example codes in the repository that can be simply run to demonst
 + example_emission_py
 + example_intracavity_transport.py
 
-Alternatively you can check through the examples by opening or running the Jupyter Notebook file examples.ipynb.
+For more documentation on the examples and the code, you may also check through or run the Jupyter Notebook file examples.ipynb.
 
 ## Credits
 
-The methodology was mostly developed during my Academy of Finland postdoc period in the Engineered Nanosystems Group at Aalto University.
+Core parts of the methodology were developed during my Academy of Finland postdoc period in the Engineered Nanosystems Group at Aalto University.
 
 ## Citation
 
