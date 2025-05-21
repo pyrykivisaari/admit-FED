@@ -19,6 +19,11 @@ mu0 = 1.257e-6
 
 def set_K(Ep,N_K=160,mat='gaas'):
     # Set the K values to account for, with a given energy vector.
+    # Inputs:
+    #   Ep: Vector including photon energies
+    #   N_K: Number of desired K values for each energy
+    #   mat: String denoting the material whose propagating modes K should span.
+    #       Has to be one of the options of get_permittivities.
     # Outputs:
     #   K: Matrix including in-plane wave numbers (in 1/m)
     #   Kmax: Vector including the maximum values of K
@@ -89,7 +94,7 @@ def get_permittivities(epslist,Ep):
 
 
 def set_source_coordinates(L,ind):
-    # Help function to spread source points evenly throughout a chosen layer
+    # Help function to spread 60 source points evenly throughout a chosen layer
     # Inputs:
     #     L: Vector including layer thicknesses (in m)
     #     ind: Index of the desired source layer (index of the first layer is 0)
@@ -105,10 +110,11 @@ def set_source_coordinates(L,ind):
 
 
 def set_source_coordinates_N(L,ind,N):
-    # Help function to spread source points evenly throughout a chosen layer
+    # Help function to spread a given number of source points evenly throughout a chosen layer
     # Inputs:
-    #     L: Vector including layer thicknesses (in m)
-    #     ind: Index of the desired source layer (index of the first layer is 0)
+    #   L: Vector including layer thicknesses (in m)
+    #   ind: Index of the desired source layer (index of the first layer is 0)
+    #   N: Number of source points to be included.
     # Outputs:
     #     z0: Vector of source coordinates (in m)
     Nz0 = N
@@ -121,11 +127,11 @@ def set_source_coordinates_N(L,ind,N):
 
 
 def find_z_given_layer(z,L,ind):
-    # Help function to find the source coordinates of a given layer    
+    # Help function to find the coordinates of a given layer    
     # Inputs:
     #     z: Vector including all the coordinates that constitute the geometry (in m)
     #     L: Vector including layer thicknesses (in m)
-    #     ind: Index of the layer of interest (index of the first layer is 0)
+    #     ind: Index of the layer of interest
     # Outputs:
     #    zIndices: Indices of z that correspond to the layer of interest
     zBoundaries = np.cumsum(L)
@@ -140,218 +146,17 @@ def find_z_given_layer(z,L,ind):
 
 
 
-def solve_optical_properties_single_E_remove(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,epssubsR=None):
-    # Solve photon numbers, Poynting vectors and recombination-generation for a
-    # single energy Ep as a function of position and K number with source
-    # coordinates z0.
-    # This also calculates the complex electric field amplitudes (a.u.) of the
-    # TE and TM fields based on Eq. (A3) of Phys. Rev. E 98, 063304 (2018),
-    # assuming an equally strong source amplitude in each direction at each source point.
-    # 
-    # Deals with the divergences by ignoring the solutions that diverge.
-    # 
-    # Inputs:
-    #       eps: Vector including the permittivity in each layer
-    #       mu: Vector including the permeability in each layer
-    #       L: Vector including the lengths of subsequent layers (in m)
-    #       N: Vector including the intended number of datapoints in each layer
-    #       Ep: Photon energy (in eV)
-    #       kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #       z0: Vector of source coordinates (in m)
-    #       dEF: Quasi-Fermi level separation at the source coordinates (in eV)
-    #       T: Temperature in K
-    # Outputs:
-    #       pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
-    #               See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
-    #       pdown_TE: Leftward-propagating photon number in TE modes as a function of K and z, similarly as pup_TE
-    #       pup_TM: Rightward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
-    #       pdown_TM: Leftward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
-    #       P_TE: Spectral radiance in TE modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
-    #       P_TM: Spectral radiance in TM modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
-    #       rad_TE: Net recombination-generation rate in TE modes as a function of K and z, calculated as a derivative of P_TE.
-    #       rad_TM: Net recombination-generation rate in TM modes as a function of K and z, calculated as a derivative of P_TM.
-    #       qte_w: Net recombination-generation rate in TE modes as a function of z (rad_TE integrated over K)
-    #       qtm_w: Net recombination-generation rate in TM modes as a function of z (rad_TM integrated over K)
-    #       E1: Complex amplitude of the TE electric field as a function of K and z
-    #       E2: Complex amplitude of the in-plane component of the TM electric field as a function of K and z
-    #       E3: Complex amplitude of the normal component of the TM electric field as a function of K and z
-    
-    omega = 2*pi*Ep*q/hplanck
-    z = oap.distribute_z_uneven(L,N)
-    
-    N_cumul = np.cumsum(N)
-    
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-    eta = 1/(np.exp(q*(Ep-dEF)/kb/T)-1)
-    
-    indexit = np.nonzero(np.logical_and(z>z0.min(),z<z0.max()))
-    index = indexit[0]
-    eta_QFED = np.zeros(np.size(z))
-    eta_QFED[index] = eta
-    
-    eps_z = oap.distribute_parameter(eps,N)
-    nr_z = np.real(np.sqrt(eps_z))
-    if epssubsL == None:
-        epssubs_l = eps[0]
-        epssubs_r = eps[-1]
-        musubs_l = mu[0]
-        musubs_r = mu[-1]
-    elif epssubsR == None:
-        epssubs_l = epssubsL
-        epssubs_r = epssubsL
-        musubs_l = 1
-        musubs_r = 1
-    else:
-        epssubs_l = epssubsL
-        epssubs_r = epssubsR
-        musubs_l = 1
-        musubs_r = 1
-    
-    pup_TE = np.zeros((kx.size, z.size), dtype=complex)
-    pdown_TE = np.zeros((kx.size, z.size), dtype=complex)
-    pup_TM = np.zeros((kx.size, z.size), dtype=complex)
-    pdown_TM = np.zeros((kx.size, z.size), dtype=complex)
-    P_TE = np.zeros((kx.size, z.size), dtype=complex)
-    P_TM = np.zeros((kx.size, z.size), dtype=complex)
-    rad_TE = np.zeros((kx.size, z.size), dtype=complex)
-    rad_TM = np.zeros((kx.size, z.size), dtype=complex)
-    E1 = np.zeros((kx.size, z.size), dtype=complex)
-    E2 = np.zeros((kx.size, z.size), dtype=complex)
-    E3 = np.zeros((kx.size, z.size), dtype=complex)
-    
-    failures_TE = []
-    failures_TM = []
-    
-    print("Solving for E =", Ep, "eV...")
-    for j in range(kx.size):
-        gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = oap.calculate_all_admittances_uneven( \
-            eps,mu,L,N,wl,kx[j],epssubs_l,musubs_l,epssubs_r,musubs_r)
-        rho_e, rho_m, rho_TE, rho_TM = oap.LDOSes(eps,mu,N,wl,kx[j],gamma_l_TE,gamma_r_TE, \
-            gamma_r_TM,gamma_l_TM)
-        
-        rho_nl_TE = np.zeros((z0.size, z.size), dtype=complex)
-        rho_nl_TM = np.zeros((z0.size, z.size), dtype=complex)
-        rho_if_TE = np.zeros((z0.size, z.size), dtype=complex)
-        rho_if_TM = np.zeros((z0.size, z.size), dtype=complex)
-        gee11 = np.zeros((z0.size, z.size), dtype=complex)
-        gee22 = np.zeros((z0.size, z.size), dtype=complex)
-        gee33 = np.zeros((z0.size, z.size), dtype=complex)
-        gee23 = np.zeros((z0.size, z.size), dtype=complex)
-        gee32 = np.zeros((z0.size, z.size), dtype=complex)
-        for k in range(z0.size):
-            gee11[k], gee22[k], gee33[k], gee23[k], gee32[k] = oap.electric_greens_functions(eps,mu,N,wl, \
-                kx[j],z,z0[k],gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            gme12, gme13, gme21, gme31 = oap.exchange_greens_functions_me(eps,mu,N,wl,kx[j], \
-                z,z0[k],gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            rho_nl_TE[k], rho_nl_TM[k] = oap.NLDOS_TETM_electric_sources(eps,mu,N,wl,kx[j],z,z0[k], \
-                gee11[k],gee22[k],gee33[k],gee23[k],gee32[k],gme12,gme13,gme21,gme31)
-            rho_if_TE[k], rho_if_TM[k] = oap.IFDOS_TETM_electric_sources(eps,mu,N,wl,z,z0[k], \
-                gee11[k],gee22[k],gee23[k],gme12,gme13,gme21)
-        # Upward and downward photon numbers calculated using Eq. (5) of Sci.
-        # Rep. 7, 11534 (2017).
-        pup_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE+rho_if_TE)*eta,z0,axis=0)
-        pdown_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE-rho_if_TE)*eta,z0,axis=0)
-        pup_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
-        pdown_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
-        
-        alphap_TE, alpham_TE, betap_TE, betam_TE = oap.RTE_coefficients_TE(eps,mu,N,wl,kx[j], \
-            gamma_l_TE,gamma_r_TE)
-        alphap_TM, alpham_TM, betap_TM, betam_TM = oap.RTE_coefficients_TM(eps,mu,N,wl,kx[j], \
-            gamma_l_TM,gamma_r_TM)
-        
-        drho_TE, drho_TM = oap.LDOS_derivatives(eps,mu,N,wl,kx[j],gamma_l_TE,gamma_r_TE,gamma_r_TM, \
-            gamma_l_TM)
-        
-        P_TE[j] = Ep*q*c*rho_TE/2*(pup_TE[j]-pdown_TE[j])/nr_z
-        P_TM[j] = Ep*q*c*rho_TM/2*(pup_TM[j]-pdown_TM[j])/nr_z
-        
-        dpup_TE = -alphap_TE*(pup_TE[j]-eta_QFED)+betap_TE*(pdown_TE[j]-eta_QFED)
-        dpup_TM = -alphap_TM*(pup_TM[j]-eta_QFED)+betap_TM*(pdown_TM[j]-eta_QFED)
-        dpdown_TE = alpham_TE*(pdown_TE[j]-eta_QFED)-betam_TE*(pup_TE[j]-eta_QFED)
-        dpdown_TM = alpham_TM*(pdown_TM[j]-eta_QFED)-betam_TM*(pup_TM[j]-eta_QFED)
-        
-        rad_TE[j] = hplanck/(2*pi)*omega*c/nr_z*1/2*(drho_TE*(pup_TE[j]-pdown_TE[j])+ \
-            rho_TE*(dpup_TE-dpdown_TE))/Ep/q
-        rad_TM[j] = hplanck/(2*pi)*omega*c/nr_z*1/2*(drho_TM*(pup_TM[j]-pdown_TM[j])+ \
-            rho_TM*(dpup_TM-dpdown_TM))/Ep/q
-        
-        E1[j] = np.trapezoid(gee11*1,z0,axis=0)
-        E2[j] = np.trapezoid(gee22*1+gee23*1,z0,axis=0)
-        E3[j] = np.trapezoid(gee32*1+gee33*1,z0,axis=0)
-        
-        N_ledend = N_cumul[3]
-        rad_TE_intpd = np.trapezoid(rad_TE[j,0:N_ledend],z[0:N_ledend])
-        rad_TE_intled = np.trapezoid(rad_TE[j,N_ledend:],z[N_ledend:])
-        rad_TM_intpd = np.trapezoid(rad_TM[j,0:N_ledend],z[0:N_ledend])
-        rad_TM_intled = np.trapezoid(rad_TM[j,N_ledend:],z[N_ledend:])
-        if np.abs(rad_TE_intpd) > 2*np.abs(rad_TE_intled):
-            failures_TE.append(j)
-        if rad_TE_intled < 0:
-            failures_TE.append(j)
-        if np.abs(rad_TM_intpd) > 2*np.abs(rad_TM_intled):
-            failures_TM.append(j)
-        if rad_TM_intled < 0:
-            failures_TM.append(j)
-    
-    print(failures_TE)
-    print(failures_TM)
-    kx_TE = np.delete(kx,failures_TE,axis=None)
-    kx_TM = np.delete(kx,failures_TM,axis=None)
-    rad_TE = np.delete(rad_TE,failures_TE,axis=0)
-    rad_TM = np.delete(rad_TM,failures_TM,axis=0)
-    E1 = np.delete(E1,failures_TE,axis=0)
-    E2 = np.delete(E2,failures_TM,axis=0)
-    E3 = np.delete(E3,failures_TM,axis=0)
-    
-    kx_mat_TE = np.tile(kx_TE,(z.size,1)).T
-    kx_mat_TM = np.tile(kx_TM,(z.size,1)).T
-    qte_w = np.trapezoid(rad_TE*2*pi*kx_mat_TE,kx_TE,axis=0)
-    qtm_w = np.trapezoid(rad_TM*2*pi*kx_mat_TM,kx_TM,axis=0)
-    
-    return pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, qte_w, qtm_w, kx_TE, kx_TM
-
-
-
-def plot_EM_field_fluctuations_single_E(L,N,Ep,K,E2Kw,H2Kw,uKw):
-    # This was used for testing, not currently used for anything I believe.
-    # I think the quantities studied here are nonetheless based on Phys. Rev. A 95, 013848 (2017).
-    z = oap.distribute_z_uneven(L,N)
-    theta = oap.propagation_angles_gaas(Ep,K)
-    
-    zplot, Tplot = np.meshgrid(z*1e6, theta)
-    
-    cmappi = colormap_SCpaper_yel()
-    
-    plt.figure()
-    plt.subplot(131)
-    plt.pcolormesh(zplot, Tplot, (E2Kw.real/np.max(E2Kw.real)), \
-        cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.subplot(132)
-    plt.pcolormesh(zplot, Tplot, (H2Kw.real/np.max(H2Kw.real)), \
-        cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.subplot(133)
-    plt.pcolormesh(zplot, Tplot, (uKw.real/np.max(uKw.real)), \
-        cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.colorbar()
-    plt.show()
-    
-    # To think about what else to return or write to file here.
-
-
-
 def plot_recombination_single_E(L,N,Ep,K,rad_TE,rad_TM):
     # Function to plot recombination-generation rate for a single energy as a function of position and propagation angle.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E
+    #       in optical_admittance_package_final
+    #   rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E
+    #       in optical_admittance_package_final
     
     z = oap.distribute_z_uneven(L,N)
     theta = oap.propagation_angles_gaas(Ep,K)
@@ -408,75 +213,18 @@ def plot_recombination_single_E(L,N,Ep,K,rad_TE,rad_TM):
     plt.text(0,5,'Min:'+"%.3g" % np.min(rad_TE.real+rad_TM.real),color="white")
     plt.colorbar()
     plt.show()
-    
-    # To think about what to return or write to file here.
-
-
-
-def plot_recombination_single_E_remove(L,N,Ep,K_TE,K_TM,rad_TE,rad_TM):
-    # Function to plot recombination-generation rate for a single energy as a function of position and propagation angle.
-    # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    
-    z = oap.distribute_z_uneven(L,N)
-    theta_TE = oap.propagation_angles_gaas(Ep,K_TE)
-    theta_TM = oap.propagation_angles_gaas(Ep,K_TM)
-    
-    zplot_TE, Tplot_TE = np.meshgrid(z*1e6, theta_TE)
-    zplot_TM, Tplot_TM = np.meshgrid(z*1e6, theta_TM)
-    
-    rad_TE_tweak = np.zeros(rad_TE.shape)
-    indexit = np.nonzero(rad_TE.real>0)
-    rad_TE_tweak[indexit] = rad_TE[indexit].real/np.max(rad_TE.real)
-    indexit = np.nonzero(rad_TE.real<0)
-    rad_TE_tweak[indexit] = rad_TE[indexit].real/(-np.min(rad_TE.real))
-    
-    rad_TM_tweak = np.zeros(rad_TM.shape)
-    indexit = np.nonzero(rad_TM.real>0)
-    rad_TM_tweak[indexit] = rad_TM[indexit].real/np.max(rad_TM.real)
-    indexit = np.nonzero(rad_TM.real<0)
-    rad_TM_tweak[indexit] = rad_TM[indexit].real/(-np.min(rad_TM.real))
-    
-    cmappi = colormap_SCpaper()
-    
-    plt.figure(figsize=(10,5),facecolor=(1,1,1))
-    plt.subplot(121)
-    plt.pcolormesh(zplot_TE, Tplot_TE, rad_TE_tweak, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta_TE), np.max(theta_TE)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('Propagation angle (deg.)')
-    #plt.text(0.2,80,'(a)',color="white")
-    plt.text(0,10,'Max:'+"%.3g" % np.max(rad_TE.real),color="white")
-    plt.text(0,5,'Min:'+"%.3g" % np.min(rad_TE.real),color="white")
-    plt.colorbar()
-    plt.subplot(122)
-    plt.pcolormesh(zplot_TM, Tplot_TM, rad_TM_tweak, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta_TM), np.max(theta_TM)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('Propagation angle (deg.)')
-    #plt.text(0.2,80,'(b)',color="white")
-    plt.text(0,10,'Max:'+"%.3g" % np.max(rad_TM.real),color="white")
-    plt.text(0,5,'Min:'+"%.3g" % np.min(rad_TM.real),color="white")
-    plt.colorbar()
-    plt.tight_layout()
-    plt.show()
 
 
 
 def plot_radiance_single_E(L,N,Ep,K,P_TE,P_TM):
     # Function to plot radiances for a single energy as a function of position and propagation angle.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     P_TE: Radiance for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     P_TM: Radiance for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   P_TE: Radiance for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
+    #   P_TM: Radiance for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
     
     z = oap.distribute_z_uneven(L,N)
     theta = oap.propagation_angles_gaas(Ep,K)
@@ -539,12 +287,14 @@ def plot_radiance_single_E(L,N,Ep,K,P_TE,P_TM):
 def plot_recombination_single_E_K(L,N,Ep,K,rad_TE,rad_TM):
     # Function to plot recombination-generation rate for a single energy as a function of position and propagation angle.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E
+    #       in optical_admittance_package_final
+    #   rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E
+    #       in optical_admittance_package_final
     
     z = oap.distribute_z_uneven(L,N)
     wl = hplanck*c/Ep/q
@@ -599,109 +349,16 @@ def plot_recombination_single_E_K(L,N,Ep,K,rad_TE,rad_TM):
 
 
 
-def plot_recombination_single_E_K_remove(L,N,Ep,K_TE,K_TM,rad_TE,rad_TM):
-    # Function to plot recombination-generation rate for a single energy as a function of position and propagation angle.
-    # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    
-    z = oap.distribute_z_uneven(L,N)
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-    
-    zplot_TE, Tplot_TE = np.meshgrid(z*1e6, K_TE/k0)
-    zplot_TM, Tplot_TM = np.meshgrid(z*1e6, K_TM/k0)
-    
-    rad_TE_tweak = np.zeros(rad_TE.shape)
-    indexit = np.nonzero(rad_TE.real>0)
-    rad_TE_tweak[indexit] = rad_TE[indexit].real/np.max(rad_TE.real)
-    indexit = np.nonzero(rad_TE.real<0)
-    rad_TE_tweak[indexit] = rad_TE[indexit].real/(-np.min(rad_TE.real))
-    
-    rad_TM_tweak = np.zeros(rad_TM.shape)
-    indexit = np.nonzero(rad_TM.real>0)
-    rad_TM_tweak[indexit] = rad_TM[indexit].real/np.max(rad_TM.real)
-    indexit = np.nonzero(rad_TM.real<0)
-    rad_TM_tweak[indexit] = rad_TM[indexit].real/(-np.min(rad_TM.real))
-    
-    cmappi = colormap_SCpaper()
-    
-    plt.figure(figsize=(10,5),facecolor=(1,1,1))
-    plt.subplot(121)
-    plt.pcolormesh(zplot_TE, Tplot_TE, rad_TE_tweak, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(K_TE/k0), np.max(K_TE/k0)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('K/k0')
-    plt.text(0.2,3.3,'(a) TE',color="white")
-    plt.colorbar()
-    plt.subplot(122)
-    plt.pcolormesh(zplot_TM, Tplot_TM, rad_TM_tweak, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(K_TM/k0), np.max(K_TM/k0)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('K/k0')
-    plt.text(0.2,3.3,'(b) TM',color="white")
-    plt.colorbar()
-    plt.tight_layout()
-    plt.show()
-
-
-
-def plot_recombination_single_E_unnormalized(L,N,Ep,K,rad_TE,rad_TM):
-    # Function to plot recombination-generation rate for a single energy as a function of position and propagation angle.
-    # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     rad_TE: Recombination-generation rate for TE calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    #     rad_TM: Recombination-generation rate for TM calculated with solve_optical_properties_single_E in optical_admittance_package_final
-    
-    z = oap.distribute_z_uneven(L,N)
-    theta = oap.propagation_angles_gaas(Ep,K)
-    
-    zplot, Tplot = np.meshgrid(z*1e6, theta)
-    
-    cmappi = colormap_SCpaper()
-    
-    plt.figure(figsize=(10,5),facecolor=(1,1,1))
-    plt.subplot(121)
-    plt.pcolormesh(zplot, Tplot, rad_TE.real, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('Propagation angle (deg.)')
-    plt.text(0.2,80,'(a)',color="white")
-    plt.colorbar()
-    plt.subplot(122)
-    plt.pcolormesh(zplot, Tplot, rad_TM.real, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('Propagation angle (deg.)')
-    plt.text(0.2,80,'(b)',color="white")
-    plt.colorbar()
-    plt.tight_layout()
-    
-    plt.figure()
-    plt.pcolormesh(zplot, Tplot, (rad_TE.real+rad_TM.real)/2, cmap=cmappi, shading='gouraud')
-    plt.axis([np.min(z)*1e6, np.max(z)*1e6, np.min(theta), np.max(theta)])
-    plt.xlabel(r'Position ($\mu$m)')
-    plt.ylabel('Propagation angle (deg.)')
-    plt.colorbar()
-    plt.show()
-
-
-
 def plot_recombination_energy_spread(L,N,Ep,qte_w,qtm_w):
     # Function to plot recombination-generation rate integrated over all directions as a function of position and photon energy.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     z = oap.distribute_z_uneven(L,N)
     zplot, Epplot = np.meshgrid(z*1e6, Ep)
     
@@ -742,18 +399,18 @@ def plot_recombination_energy_spread(L,N,Ep,qte_w,qtm_w):
 def calculate_QE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     # Calculate the quantum efficiency of light transfer between the emitter and the absorber layer.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     indEm: Index of the emitting layer (index of the first layer is 0)
-    #     indAbs: Index of the absorbing layer (index of the first layer is 0)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   indEm: Index of the emitting layer (index of the first layer is 0)
+    #   indAbs: Index of the absorbing layer (index of the first layer is 0)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
     # Outputs:
-    #     qe_w_te: Vector of quantum efficiencies for TE for each energy
-    #     qe_w_tm: Vector of quantum efficiencies for TM for each energy
-    #     qe_tot_te: Quantum efficiency for TE integrated over energy
-    #     qe_tot_tm: Quantum efficiency for TM integrated over energy
+    #   qe_w_te: Vector of quantum efficiencies for TE for each energy
+    #   qe_w_tm: Vector of quantum efficiencies for TM for each energy
+    #   qe_tot_te: Quantum efficiency for TE integrated over energy
+    #   qe_tot_tm: Quantum efficiency for TM integrated over energy
     
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
@@ -784,18 +441,20 @@ def calculate_QE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
 def calculate_PCE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     # Calculate the optical power transfer efficiency between the emitter and absorber layer.
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     indEm: Index of the emitting layer (index of the first layer is 0)
-    #     indAbs: Index of the absorbing layer (index of the first layer is 0)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   indEm: Index of the emitting layer (index of the first layer is 0)
+    #   indAbs: Index of the absorbing layer (index of the first layer is 0)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
-    #     pce_w_te: Vector of power transfer efficiencies for TE for each energy
-    #     pce_w_tm: Vector of power transfer efficiencies for TM for each energy
-    #     pce_tot_te: Power transfer efficiency for TE integrated over energy
-    #     pce_tot_tm: Power transfer efficiency for TM integrated over energy
+    #   pce_w_te: Vector of power transfer efficiencies for TE for each energy
+    #   pce_w_tm: Vector of power transfer efficiencies for TM for each energy
+    #   pce_tot_te: Power transfer efficiency for TE integrated over energy
+    #   pce_tot_tm: Power transfer efficiency for TM integrated over energy
     
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
@@ -830,18 +489,20 @@ def calculate_PCE_energy_spread(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
 def calculate_em_abs_powers(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     # Function to calculate the total power emitted by a certain layer and the power absorbed by another layer.
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     indEm: Index of the emitting layer (index of the first layer is 0)
-    #     indAbs: Index of the absorbing layer (index of the first layer is 0)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   indEm: Index of the emitting layer (index of the first layer is 0)
+    #   indAbs: Index of the absorbing layer (index of the first layer is 0)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
-    #     RPtot_te_int_Em: Emitted optical power in TE by the emitting layer (should be in W/m^2, but I should double-check)
-    #     RPtot_te_int_Abs: Absorbed optical power in TE by the absorbing layer (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_int_Em: Emitted optical power in TM by the emitting layer (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_int_Abs: Absorbed optical power in TM by the absorbing layer (should be in W/m^2, but I should double-check)
+    #   RPtot_te_int_Em: Emitted optical power in TE by the emitting layer (W/m^2)
+    #   RPtot_te_int_Abs: Absorbed optical power in TE by the absorbing layer (W/m^2)
+    #   RPtot_tm_int_Em: Emitted optical power in TM by the emitting layer (W/m^2)
+    #   RPtot_tm_int_Abs: Absorbed optical power in TM by the absorbing layer (W/m^2)
     
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
@@ -866,20 +527,22 @@ def calculate_em_abs_powers(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
 
 def calculate_em_abs_powers_E_integration(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     # Function to calculate the total power emitted by a certain layer and the power absorbed by another layer.
-    # Integrates over E instead of omega.
+    # Integrates over E instead of omega just to check.
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     indEm: Index of the emitting layer (index of the first layer is 0)
-    #     indAbs: Index of the absorbing layer (index of the first layer is 0)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   indEm: Index of the emitting layer (index of the first layer is 0)
+    #   indAbs: Index of the absorbing layer (index of the first layer is 0)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
-    #     RPtot_te_int_Em: Emitted optical power in TE by the emitting layer (should be in W/m^2, but I should double-check)
-    #     RPtot_te_int_Abs: Absorbed optical power in TE by the absorbing layer (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_int_Em: Emitted optical power in TM by the emitting layer (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_int_Abs: Absorbed optical power in TM by the absorbing layer (should be in W/m^2, but I should double-check)
+    #     RPtot_te_int_Em: Emitted optical power in TE by the emitting layer (W/m^2)
+    #     RPtot_te_int_Abs: Absorbed optical power in TE by the absorbing layer (W/m^2)
+    #     RPtot_tm_int_Em: Emitted optical power in TM by the emitting layer (W/m^2)
+    #     RPtot_tm_int_Abs: Absorbed optical power in TM by the absorbing layer (W/m^2)
     
     z = oap.distribute_z_uneven(L,N)
     zIndAbs = find_z_given_layer(z,L,indAbs)
@@ -904,13 +567,15 @@ def calculate_em_abs_powers_E_integration(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
 def calculate_em_abs_rates(L,N,Ep,indEm,indAbs,qte_w,qtm_w):
     # Function to calculate the total rate emitted by a certain layer and the rate absorbed by another layer.
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     indEm: Index of the emitting layer (index of the first layer is 0)
-    #     indAbs: Index of the absorbing layer (index of the first layer is 0)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   indEm: Index of the emitting layer (index of the first layer is 0)
+    #   indAbs: Index of the absorbing layer (index of the first layer is 0)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
     #     Rtot_te_int_Em: Emission rate in TE by the emitting layer
     #     Rtot_te_int_Abs: Absorption rate in TE by the absorbing layer
@@ -951,16 +616,18 @@ def calculate_RG_spectra(L,N,indAbs,qte_w,qtm_w):
 def calculate_total_em_abs_powers(L,N,Ep,qte_w,qtm_w):
     # Function to calculate the total power emitted by the full structure and the power absorbed by the full structure.
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
-    #     RPtot_te_all_Em: Emitted optical power in TE by the full structure (should be in W/m^2, but I should double-check)
-    #     RPtot_te_all_Abs: Absorbed optical power in TE by the full structure (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_all_Em: Emitted optical power in TM by the full structure (should be in W/m^2, but I should double-check)
-    #     RPtot_tm_all_Abs: Absorbed optical power in TM by the full structure (should be in W/m^2, but I should double-check)
+    #   RPtot_te_all_Em: Emitted optical power in TE by the full structure (should be in W/m^2, but I should double-check)
+    #   RPtot_te_all_Abs: Absorbed optical power in TE by the full structure (should be in W/m^2, but I should double-check)
+    #   RPtot_tm_all_Em: Emitted optical power in TM by the full structure (should be in W/m^2, but I should double-check)
+    #   RPtot_tm_all_Abs: Absorbed optical power in TM by the full structure (should be in W/m^2, but I should double-check)
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
     
@@ -983,16 +650,18 @@ def calculate_total_em_abs_powers(L,N,Ep,qte_w,qtm_w):
 def calculate_total_em_abs_rates(L,N,Ep,qte_w,qtm_w):
     # Function to calculate the total rate emitted by the full structure and the rate absorbed by the full structure.
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
     # Outputs:
-    #     RPtot_te_all_Em: Emitted optical rate in TE by the full structure (should be in 1/m^2, but I should double-check)
-    #     RPtot_te_all_Abs: Absorbed optical rate in TE by the full structure (should be in 1/m^2, but I should double-check)
-    #     RPtot_tm_all_Em: Emitted optical rate in TM by the full structure (should be in 1/m^2, but I should double-check)
-    #     RPtot_tm_all_Abs: Absorbed optical rate in TM by the full structure (should be in 1/m^2, but I should double-check)
+    #   RPtot_te_all_Em: Emitted optical rate in TE by the full structure (should be in 1/m^2, but I should double-check)
+    #   RPtot_te_all_Abs: Absorbed optical rate in TE by the full structure (should be in 1/m^2, but I should double-check)
+    #   RPtot_tm_all_Em: Emitted optical rate in TM by the full structure (should be in 1/m^2, but I should double-check)
+    #   RPtot_tm_all_Abs: Absorbed optical rate in TM by the full structure (should be in 1/m^2, but I should double-check)
     omega = 2*pi*Ep*q/hplanck
     z = oap.distribute_z_uneven(L,N)
     
@@ -1011,11 +680,13 @@ def calculate_total_em_abs_rates(L,N,Ep,qte_w,qtm_w):
 def plot_total_rates_energy_spread(L,N,Ep,qte_w,qtm_w):
     # Plot recombination-generatin as a function of position and photon energy
     # Inputs:
-    #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Vector including photon energies (in eV)
-    #     qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread in optical_admittance_package_final
-    #     qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Vector including photon energies (in eV)
+    #   qte_w: Recombination-generation rate for TE calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
+    #   qtm_w: Recombination-generation rate for TM calculated with solve_recombination_energy_spread
+    #       in optical_admittance_package_final
         
     omega = 2*pi*Ep*q/hplanck
     Rtot_te = np.trapezoid(qte_w,omega,axis=0)
@@ -1043,13 +714,13 @@ def plot_total_rates_energy_spread(L,N,Ep,qte_w,qtm_w):
 def plot_Efield_single_E(L,N,Ep,K,E1,E2,E3):
     # Plot normalized electric field amplitude for a given photon energy as a function of position and propagation angle
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
     
     z = oap.distribute_z_uneven(L,N)
     theta = oap.propagation_angles_gaas(Ep,K)
@@ -1079,13 +750,13 @@ def plot_Efield_single_E(L,N,Ep,K,E1,E2,E3):
 def plot_Efield_single_E_K(L,N,Ep,K,E1,E2,E3):
     # Plot normalized electric field amplitude for a given photon energy as a function of position and K
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
    
     z = oap.distribute_z_uneven(L,N)
     wl = hplanck*c/Ep/q
@@ -1117,13 +788,13 @@ def plot_Efield_single_E_K(L,N,Ep,K,E1,E2,E3):
 def plot_Efield_single_E_unnormalized(L,N,Ep,K,E1,E2,E3):
     # Plot electric field amplitude for a given photon energy as a function of position and propagation angle
     # Inputs:
-        #       L: Vector including the lengths of subsequent layers (in m)
-        #       N: Vector including the intended number of datapoints in each layer
-        #       Ep: Photon energy (in eV)
-        #       K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
-    #     E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
+    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the intended number of datapoints in each layer
+    #   Ep: Photon energy (in eV)
+    #   K: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    #   E1: Electric field component E1 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E2: Electric field component E2 returned by the function Efield_single_E in optical_admittance_package_final
+    #   E3: Electric field component E3 returned by the function Efield_single_E in optical_admittance_package_final
     
     z = oap.distribute_z_uneven(L,N)
     theta = oap.propagation_angles_gaas(Ep,K)
