@@ -424,10 +424,8 @@ def NLDOS_electric_sources(eps,N,wl,z,z0,gee11,gee22,gee33,gee23,gee32,gme12,gme
     # (excluding magnetic sources)
     # Inputs:
     #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
     #     N: Vector including the intended number of datapoints in each layer
     #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
     #     z: Vector including the z coordinates (in m)
     #     z0: Source coordinate (in m)
     #     gee11, gee22, gee33, gee23, gee32, gme12, gme13, gme21, gme31: Green's dyadics
@@ -616,6 +614,8 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
     #     T: Temperature in K
+    #     epssubsL: Permittivity of the semi-infinite region to the left; if not given, eps[0] is used.
+    #     epssubsR: Permittivity of the semi-infinite region to the right; if not given, eps[-1] is used.
     # Outputs:
     #     pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
     #        See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
@@ -724,69 +724,6 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
 
 
 
-def EM_field_fluctuations_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T):
-    # This has been used for testing. Not currently used for anything I believe. Whatever this does, I think this
-    # was based on Phys. Rev. A 95, 013848 (2017).
-    omega = 2*pi*Ep*q/hplanck
-    z = distribute_z_uneven(L,N)
-    
-    wl = hplanck*c/Ep/q
-    eta = 1/(np.exp(q*(Ep-dEF)/kb/T)-1)
-    k0 = 2*pi/wl
-    
-    eps_z = distribute_parameter(eps,N)
-    mu_z = distribute_parameter(mu,N)
-    epssubs_l = eps[0]
-    epssubs_r = eps[-1]
-    musubs_l = mu[0]
-    musubs_r = mu[-1]
-    
-    rho_e = np.zeros((kx.size, z.size), dtype=complex)
-    rho_m = np.zeros((kx.size, z.size), dtype=complex)
-    rho_tot = np.zeros((kx.size, z.size), dtype=complex)
-    p_e = np.zeros((kx.size, z.size), dtype=complex)
-    p_m = np.zeros((kx.size, z.size), dtype=complex)
-    p_tot = np.zeros((kx.size, z.size), dtype=complex)
-    
-    for j in range(kx.size):
-        gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = calculate_all_admittances_uneven( \
-            eps,mu,L,N,wl,kx[j],epssubs_l,musubs_l,epssubs_r,musubs_r)
-        rho_e[j], rho_m[j], rho_TE, rho_TM = LDOSes(eps,mu,N,wl,kx[j],gamma_l_TE,gamma_r_TE, \
-            gamma_r_TM,gamma_l_TM)
-        rho_tot[j] = 0.5*(np.abs(eps_z)*rho_e[j]+np.abs(mu_z)*rho_m[j])
-        
-        rho_nl_e = np.zeros((z0.size, z.size), dtype=complex)
-        rho_nl_m = np.zeros((z0.size, z.size), dtype=complex)
-        rho_nl_tot = np.zeros((z0.size, z.size), dtype=complex)
-        
-        for k in range(z0.size):
-            gee11, gee22, gee33, gee23, gee32 = \
-                electric_greens_functions(eps,mu,N,wl,kx[j],z,z0[k], \
-                gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            gme12, gme13, gme21, gme31 = exchange_greens_functions_me( \
-                eps,mu,N,wl,kx[j],z,z0[k],gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            rho_nl_e[k], rho_nl_m[k] = NLDOS_electric_sources(eps,N,wl,z,z0[k],gee11,gee22, \
-                gee33,gee23,gee32,gme12,gme13,gme21,gme31)
-            rho_nl_tot[k] = 0.5*(np.abs(eps_z)*rho_nl_e[k]+np.abs(mu_z)*rho_nl_m[k])
-        p_e[j] = 1/rho_e[j]*np.trapz(rho_nl_e*eta,z0,axis=0)
-        p_m[j] = 1/rho_m[j]*np.trapz(rho_nl_m*eta,z0,axis=0)
-        p_tot[j] = 1/rho_tot[j]*np.trapz(rho_nl_tot*eta,z0,axis=0)
-        
-        print("Solved for E =", Ep, "eV and K/k0 =", kx[j]/k0)
-    
-    E2Kw = hbar*omega/eps0*rho_e*(p_e+0.5)
-    H2Kw = hbar*omega/mu0*rho_m*(p_m+0.5)
-    uKw = hbar*omega*rho_tot*(p_tot+0.5)
-    
-    kx_mat = np.tile(kx,(z.size,1)).T
-    E2w = np.trapz(E2Kw*2*pi*kx_mat,kx,axis=0)
-    H2w = np.trapz(H2Kw*2*pi*kx_mat,kx,axis=0)
-    uw = np.trapz(uKw*2*pi*kx_mat,kx,axis=0)
-    
-    return E2Kw, H2Kw, uKw, E2w, H2w, uw
-
-
-
 def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
     # Calculate the complex electric field amplitudes (a.u.) of the TE and TM fields based on Eq. (A3) of
     # Phys. Rev. E 98, 063304 (2018), assuming an equally strong source amplitude in each direction at each source point.
@@ -798,6 +735,9 @@ def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
     #     Ep: Photon energy (in eV)
     #     kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
     #     z0: Vector of source coordinates (in m)
+    #     epssubs: Permittivity of the semi-infinite regions on both sides. If not given, eps[0] is used for the one
+    #       on the left-hand side and eps[-1] for the one on the right-hand side. TODO: update this to have epssubsL
+    #       and epssubsR similarly as for instance solve_optical_properties_single_E.
     # Outputs:
     #     E1: Complex amplitude of the TE electric field as a function of K and z
     #     E2: Complex amplitude of the in-plane component of the TM electric field as a function of K and z
@@ -853,14 +793,18 @@ def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
     # Inputs:
     #     L: Vector including the lengths of subsequent layers (in m)
     #     N: Vector including the intended number of datapoints in each layer
-    #    eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
+    #    eps: Matrix including the permittivity in each layer vs. Ep
+    #     mu: Matrix including the permeability in each layer vs. Ep
     #     Ep: Vector including photon energies (in eV)
     #     Kmax: Maximum in-plane k number to be used (in 1/m)
-    #    N_K: Desired number of in-plane k number values to perform the calculation for
+    #    N_K: Desired number of in-plane k number values for which to perform the calculation
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
     #     T: Temperature in K
+    #     epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
+    #       If not given, the leftmost region described by L is assumed to continue to infinity.
+    #     epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
+    #       If not given, the rightmost region described by L is assumed to continue to infinity.
     # Outputs:
     #     qte_w: Net recombination-generation rate in TE modes as a function of Ep and z (rad_TE integrated over K)
     #     qtm_w: Net recombination-generation rate in TM modes as a function of Ep and z (rad_TM integrated over K)
@@ -898,14 +842,18 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
     # Inputs:
     #     L: Vector including the lengths of subsequent layers (in m)
     #     N: Vector including the intended number of datapoints in each layer
-    #    eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
+    #    eps: Matrix including the permittivity in each layer vs. Ep
+    #     mu: Matrix including the permeability in each layer vs. Ep
     #     Ep: Vector including photon energies (in eV)
     #     Kmax: Maximum in-plane k number to be used (in 1/m)
     #    N_K: Desired number of in-plane k number values to perform the calculation for
     #     z0: Vector of source coordinates (in m)
     #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
     #     T: Temperature in K
+    #     epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
+    #       If not given, the leftmost region described by L is assumed to continue to infinity.
+    #     epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
+    #       If not given, the rightmost region described by L is assumed to continue to infinity.
     # Outputs:
     #     PTE_w: Spectral radiance in TE modes as a function of Ep and z (P_TE integrated over K)
     #     PTM_w: Spectral radiance in TM modes as a function of Ep and z (P_TM integrated over K)
@@ -941,6 +889,8 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
 
 
 def theta_function(K,nr,k0):
+    # Just a help function for the propagation_angle functions below.
+    # Not intended to be used outside of those.
     warnings.warn("deprecated", RuntimeWarning)
     thetarad =np.arcsin(K/nr/k0)
     return thetarad
@@ -949,7 +899,8 @@ def theta_function(K,nr,k0):
 
 def propagation_angles(Ep,K,eps,mu):
     # Help function to calculate the propagation angles corresponding to given in-plane k numbers
-    # in the material specified by eps and mu for the single photon energy Ep 
+    # in the material specified by eps and mu for the single photon energy Ep
+    # NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
     # Inputs:
     #     Ep: Photon energy (in eV)
     #     K: Vector including the in-plane k numbers (in 1/m)
@@ -974,7 +925,8 @@ def propagation_angles(Ep,K,eps,mu):
 
 def propagation_angles_gaas(Ep,K):
     # Help function to calculate the propagation angles corresponding to given in-plane k numbers
-    # in GaAs for the single photon energy Ep. Forces the angle to be real
+    # in GaAs for the single photon energy Ep.
+    # NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
     # Inputs:
     #     Ep: Photon energy (in eV)
     #     K: Vector including the in-plane k numbers (in 1/m)
@@ -992,30 +944,6 @@ def propagation_angles_gaas(Ep,K):
     theta = thetarad/pi*180
     theta[np.nonzero(np.isnan(theta))]=90
 
-    return theta
-
-
-
-def propagation_angles_gaas_complex(Ep,K):
-    # Help function to calculate the propagation angles corresponding to given in-plane k numbers
-    # in GaAs for the single photon energy Ep. This allows the angle to be complex.
-    # Inputs:
-    #     Ep: Photon energy (in eV)
-    #     K: Vector including the in-plane k numbers (in 1/m)
-    # Outputs:
-    #     theta: Vector including the propagation angles corresponding to K (in degrees)
-    eps = perm.permittivity_gaas_palik(Ep)
-    mu = 1
-    nr = np.sqrt(eps*mu)
-    wl = hplanck*c/Ep/q
-    k0 = 2*pi/wl
-    
-    # There should be an if-else or try-catch here. Now this gives a warning for K>nr*k0.
-    # But it doesn't give an error.
-    thetarad = np.arcsin(K/nr/k0)
-    theta = thetarad/pi*180
-    theta[np.nonzero(np.isnan(theta))]=90
-    
     return theta
 
 
@@ -1068,7 +996,7 @@ def reflectance_transmission_kx(eps,mu,N,wl,kx,z,gamma_l_TE,gamma_r_TE,gamma_r_T
     # Inputs:
     #   eps: Permittivity of the material corresponding to wavelength wl
     #   mu : Permeability of the material corresponding to wavelength wl
-    #   L: Vector including the lengths of subsequent layers (in m)
+    #   N: Vector including the number of datapoints in each layer
     #   wl: Wavelength of light in vacuum (in m)
     #   kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
     #   z: Vector including the z coordinates (in m)
