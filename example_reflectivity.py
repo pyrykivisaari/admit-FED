@@ -9,7 +9,7 @@ c = 299792458
 hplanck = 6.626e-34
 q = 1.602e-19
 Ep = np.concatenate((1.41,np.linspace(1.42,1.48,15),1.52,1.56,1.6),axis=None)
-kx, Kmax = tf.set_K(Ep=Ep,N_K=100,mat='algaas')
+kx, Kmax = tf.set_K(Ep=Ep,N_K=200,mat='algaas')
 wl = hplanck*c/Ep/q
 k0 = 2*pi/wl
 
