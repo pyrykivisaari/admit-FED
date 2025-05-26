@@ -9,7 +9,7 @@
    id="svg8"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    sodipodi:docname="structure_reflectivity.svg"
-   inkscape:export-filename="structure.png"
+   inkscape:export-filename="structure_reflectivity.png"
    inkscape:export-xdpi="212"
    inkscape:export-ydpi="212"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -155,8 +155,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.0000001"
-     inkscape:cx="496.74999"
-     inkscape:cy="77.249998"
+     inkscape:cx="462.49998"
+     inkscape:cy="78.249996"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -462,5 +462,9 @@
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 145.24783,68.322168 c -5.41629,-9.093293 -5.41629,-9.093293 -5.41629,-9.093293"
        id="path12822" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 147.91191,68.13878 c -0.69555,-8.815983 -0.69555,-8.815983 -0.69555,-8.815983"
+       id="path1790" />
   </g>
 </svg>
