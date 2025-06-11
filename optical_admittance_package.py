@@ -690,10 +690,10 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
                 gee11,gee22,gee23,gme12,gme13,gme21)
         # Upward and downward photon numbers calculated using Eq. (5) of Sci.
         # Rep. 7, 11534 (2017).
-        pup_TE[j] = 1/rho_TE*np.trapz((rho_nl_TE+rho_if_TE)*eta,z0,axis=0)
-        pdown_TE[j] = 1/rho_TE*np.trapz((rho_nl_TE-rho_if_TE)*eta,z0,axis=0)
-        pup_TM[j] = 1/rho_TM*np.trapz((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
-        pdown_TM[j] = 1/rho_TM*np.trapz((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
+        pup_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE+rho_if_TE)*eta,z0,axis=0)
+        pdown_TE[j] = 1/rho_TE*np.trapezoid((rho_nl_TE-rho_if_TE)*eta,z0,axis=0)
+        pup_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
+        pdown_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
         
         alphap_TE, alpham_TE, betap_TE, betam_TE = RTE_coefficients_TE(eps,mu,N,wl,kx[j], \
             gamma_l_TE,gamma_r_TE)
@@ -717,8 +717,8 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
             rho_TM*(dpup_TM-dpdown_TM))
     
     kx_mat = np.tile(kx,(z.size,1)).T
-    qte_w = np.trapz(rad_TE*2*pi*kx_mat,kx,axis=0)
-    qtm_w = np.trapz(rad_TM*2*pi*kx_mat,kx,axis=0)
+    qte_w = np.trapezoid(rad_TE*2*pi*kx_mat,kx,axis=0)
+    qtm_w = np.trapezoid(rad_TM*2*pi*kx_mat,kx,axis=0)
     
     return pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, qte_w, qtm_w
 
@@ -777,9 +777,9 @@ def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
             gee11[k], gee22[k], gee33[k], gee23[k], gee32[k] = \
                 electric_greens_functions(eps,mu,N,wl,kx[j],z,z0[k], \
                 gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-        E1[j] = np.trapz(gee11*1,z0,axis=0)
-        E2[j] = np.trapz(gee22*1+gee23*1,z0,axis=0)
-        E3[j] = np.trapz(gee32*1+gee33*1,z0,axis=0)
+        E1[j] = np.trapezoid(gee11*1,z0,axis=0)
+        E2[j] = np.trapezoid(gee22*1+gee23*1,z0,axis=0)
+        E3[j] = np.trapezoid(gee32*1+gee33*1,z0,axis=0)
         
     
     return E1, E2, E3
@@ -881,8 +881,8 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
                 eps[i],mu[i],L,N,E,K,z0,dEF,T)
 
         K_mat = np.tile(K,(z.size,1)).T
-        PTE_w[i] = np.trapz(P_TE*2*pi*K_mat,K,axis=0)
-        PTM_w[i] = np.trapz(P_TM*2*pi*K_mat,K,axis=0)
+        PTE_w[i] = np.trapezoid(P_TE*2*pi*K_mat,K,axis=0)
+        PTM_w[i] = np.trapezoid(P_TM*2*pi*K_mat,K,axis=0)
 
     return PTE_w, PTM_w
 
