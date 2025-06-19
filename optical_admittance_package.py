@@ -72,25 +72,29 @@ def distribute_parameter(param,N):
 
 
 def calculate_all_admittances_uneven(eps,mu,L,N,wl,kx,epssubs_l,musubs_l,epssubs_r,musubs_r):
-    # Calculate the leftward- and rightward optical admittances for TE and TM satisfying Eqs. (11)-(16)
-    # of Phys. Rev. E 98, 063304 (2018) for a single photon energy and propagation direction.
-    # Inputs:
-    #    eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #    epssubs_l: Permittivity at the left end of the structure
-    #     musubs_l: Permeability at the left end of the structure
-    #     epssubs_r: Permittivity at the right end of the structure
-    #     musubs_r: Permeability at the right end of the structure
-    # Outputs:
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    """
+    Calculate the leftward- and rightward optical admittances for TE and TM satisfying Eqs. (11)-(16)
+    of Phys. Rev. E 98, 063304 (2018) for a single photon energy and propagation direction.
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    epssubs_l: Permittivity at the left end of the structure
+    musubs_l: Permeability at the left end of the structure
+    epssubs_r: Permittivity at the right end of the structure
+    musubs_r: Permeability at the right end of the structure
+    
+    Returns:
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    """
+
     eps_r = eps[::-1]
     mu_r = mu[::-1]
     L_r = L[::-1]
@@ -111,21 +115,26 @@ def calculate_all_admittances_uneven(eps,mu,L,N,wl,kx,epssubs_l,musubs_l,epssubs
 
 
 def admittance_layer_structure_TE(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
-    # Calculate the TE optical admittance satisfying Eq. (19) of Phys. Rev. E 98, 063304 (2018) for a single
-    # photon energy and propagation direction.
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     z: Vector including the z coordinates (in m)
-    #     epssubs: Permittivity at the end of the structure with the outgoing wave
-    #     musubs: Permeabilit at the end of the structure with the outgoing wave
-    #     sgn: Just a relic from debugging method. 1 or -1 depending on whether the time dependence is
-    #        written as omega*t or -omega*t. Here we use -omegat*t, and this should be -1.
-    # Outputs:
-    #     gamma: Optical admittance for TE
+    """
+    Calculate the TE optical admittance satisfying Eq. (19) of Phys. Rev. E 98, 063304 (2018) for a single
+    photon energy and propagation direction.
+    
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    epssubs: Permittivity at the end of the structure with the outgoing wave
+    musubs: Permeabilit at the end of the structure with the outgoing wave
+    sgn: Just a relic from debugging method. 1 or -1 depending on whether the time dependence is
+    written as omega*t or -omega*t. Here we use -omegat*t, and this should be -1.
+    
+    Returns:
+    gamma: Optical admittance for TE
+    """
+
     k0 = 2*pi/wl
     eta_s = sgn*np.sqrt(epssubs*musubs-kx**2/k0**2)/musubs
     gamma = np.zeros(z.size, dtype=complex)
@@ -148,22 +157,26 @@ def admittance_layer_structure_TE(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
 
 
 def admittance_layer_structure_TM(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
-    # Calculate the TM optical admittance satisfying Eq. (19) of Phys. Rev. E 98, 063304 (2018) for a single
-    # photon energy and propagation direction.
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     z: Vector including the z coordinates (in m)
-    #     epssubs: Permittivity at the end of the structure with the outgoing wave
-    #     musubs: Permeabilit at the end of the structure with the outgoing wave
-    #     sgn: Just a relic from debugging method. 1 or -1 depending on whether the time dependence is
-    #        written as omega*t or -omega*t. Here we use -omegat*t, and this should be -1.
-    # Outputs:
-    #     gamma: Optical admittance for TM
+    """
+    Calculate the TM optical admittance satisfying Eq. (19) of Phys. Rev. E 98, 063304 (2018) for a single
+    photon energy and propagation direction.
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    epssubs: Permittivity at the end of the structure with the outgoing wave
+    musubs: Permeabilit at the end of the structure with the outgoing wave
+    sgn: Just a relic from debugging method. 1 or -1 depending on whether the time dependence is
+    written as omega*t or -omega*t. Here we use -omegat*t, and this should be -1.
+    
+    Returns:
+    gamma: Optical admittance for TM
+    """
+
     k0 = 2*pi/wl
     eta_s = sgn*np.sqrt(epssubs*musubs-kx**2/k0**2)/epssubs
     gamma = np.zeros(z.size, dtype=complex)
@@ -186,23 +199,27 @@ def admittance_layer_structure_TM(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
 
 
 def LDOSes(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
-    # Calculate local densities of states for a single photon energy and propagation direction
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    # Outputs:
-    #     rho_e: Local density of states of Eq. (28) of Phys. Rev. E 98, 063304 (2018)
-    #     rho_TE: Local density of states of Eq. (S5) of Sci. Rep. 7, 11534 (2017)
-    #     rho_m: Local density of states of Eq. (29) of Phys. Rev. E 98, 063304 (2018)
-    #     rho_TM: Local density of states of Eq. (S6) of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate local densities of states for a single photon energy and propagation direction
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    
+    Returns:
+    rho_e: Local density of states of Eq. (28) of Phys. Rev. E 98, 063304 (2018)
+    rho_TE: Local density of states of Eq. (S5) of Sci. Rep. 7, 11534 (2017)
+    rho_m: Local density of states of Eq. (29) of Phys. Rev. E 98, 063304 (2018)
+    rho_TM: Local density of states of Eq. (S6) of Sci. Rep. 7, 11534 (2017)
+    """
+
     k0 = 2*pi/wl
     eps_z = distribute_parameter(eps,N)
     mu_z = distribute_parameter(mu,N)
@@ -225,27 +242,31 @@ def LDOSes(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
 
 
 def electric_greens_functions(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
-    # Calculate the electric Green's function for a single source point following Section III of
-    # the suppl. mat. of Sci. Rep. 7, 11534 (2017) and Appendix A of Phys. Rev. E 98, 063304 (2018)
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     z: Vector including the z coordinates (in m)
-    #     z0: Source coordinate (in m)
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    # Outputs:
-    #     gee11: Green's dyadic of Eq. (A4) in Phys. Rev. E 98, 063304 (2018)
-    #     gee22: Green's dyadic of Eq. (A5) in Phys. Rev. E 98, 063304 (2018)
-    #     gee33: Green's dyadic of Eq. (A8) in Phys. Rev. E 98, 063304 (2018)
-    #     gee23: Green's dyadic of Eq. (A7) in Phys. Rev. E 98, 063304 (2018)
-    #     gee32: Green's dyadic of Eq. (A6) in Phys. Rev. E 98, 063304 (2018)
+    """
+    Calculate the electric Green's function for a single source point following Section III of
+    the suppl. mat. of Sci. Rep. 7, 11534 (2017) and Appendix A of Phys. Rev. E 98, 063304 (2018)
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    z0: Source coordinate (in m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    
+    Returns:
+    gee11: Green's dyadic of Eq. (A4) in Phys. Rev. E 98, 063304 (2018)
+    gee22: Green's dyadic of Eq. (A5) in Phys. Rev. E 98, 063304 (2018)
+    gee33: Green's dyadic of Eq. (A8) in Phys. Rev. E 98, 063304 (2018)
+    gee23: Green's dyadic of Eq. (A7) in Phys. Rev. E 98, 063304 (2018)
+    gee32: Green's dyadic of Eq. (A6) in Phys. Rev. E 98, 063304 (2018)
+    """
+
     indexit = np.nonzero(z>z0)
     index = indexit[0][0]
     eps_z = distribute_parameter(eps,N)
@@ -293,26 +314,30 @@ def electric_greens_functions(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma_r_
 
 
 def exchange_greens_functions_me(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
-    # Calculate the exchange Green's function for a single source point following Section III of
-    # the suppl. mat. of Sci. Rep. 7, 11534 (2017) and Appendix A of Phys. Rev. E 98, 063304 (2018)
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     z: Vector including the z coordinates (in m)
-    #     z0: Source coordinate (in m)
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    # Outputs:
-    #     gme12: Green's dyadic of Eq. (A11) in Phys. Rev. E 98, 063304 (2018)
-    #     gme13: Green's dyadic of Eq. (A12) in Phys. Rev. E 98, 063304 (2018)
-    #     gme21: Green's dyadic of Eq. (A9) in Phys. Rev. E 98, 063304 (2018)
-    #     gme31: Green's dyadic of Eq. (A10) in Phys. Rev. E 98, 063304 (2018)
+    """
+    Calculate the exchange Green's function for a single source point following Section III of
+    the suppl. mat. of Sci. Rep. 7, 11534 (2017) and Appendix A of Phys. Rev. E 98, 063304 (2018)
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    z0: Source coordinate (in m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    
+    Returns:
+    gme12: Green's dyadic of Eq. (A11) in Phys. Rev. E 98, 063304 (2018)
+    gme13: Green's dyadic of Eq. (A12) in Phys. Rev. E 98, 063304 (2018)
+    gme21: Green's dyadic of Eq. (A9) in Phys. Rev. E 98, 063304 (2018)
+    gme31: Green's dyadic of Eq. (A10) in Phys. Rev. E 98, 063304 (2018)
+    """
+
     indexit = np.nonzero(z>z0)
     index = indexit[0][0]
     eps_z = distribute_parameter(eps,N)
@@ -356,21 +381,25 @@ def exchange_greens_functions_me(eps,mu,N,wl,kx,z,z0,gamma_l_TE,gamma_r_TE,gamma
 
 
 def NLDOS_TETM_electric_sources(eps,mu,N,wl,kx,z,z0,gee11,gee22,gee33,gee23,gee32,gme12,gme13,gme21,gme31):
-    # Calculate the nonlocal densities of states of Eqs. (S1) and (S2) of the supplementary material of Sci. Rep. 7, 11534 (2017)
-    # (excluding magnetic sources)
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     z: Vector including the z coordinates (in m)
-    #     z0: Source coordinate (in m)
-    #     gee11, gee22, gee33, gee23, gee32, gme12, gme13, gme21, gme31: Green's dyadics
-    # Outputs:
-    #     rho_nl_TE: Nonlocal density of states for TE, Eq. (S1) of the supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     rho_nl_TM: Nonlocal density of states for TM, Eq. (S1) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate the nonlocal densities of states of Eqs. (S1) and (S2) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    (excluding magnetic sources)
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    z0: Source coordinate (in m)
+    gee11, gee22, gee33, gee23, gee32, gme12, gme13, gme21, gme31: Green's dyadics
+    
+    Returns:
+    rho_nl_TE: Nonlocal density of states for TE, Eq. (S1) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    rho_nl_TM: Nonlocal density of states for TM, Eq. (S1) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+
     k0 = 2*pi/wl
     indexit = np.nonzero(z>z0)
     index = indexit[0][0]
@@ -396,20 +425,24 @@ def NLDOS_TETM_electric_sources(eps,mu,N,wl,kx,z,z0,gee11,gee22,gee33,gee23,gee3
 
 
 def IFDOS_TETM_electric_sources(eps,mu,N,wl,z,z0,gee11,gee22,gee23,gme12,gme13,gme21):
-    # Calculate the interference densities of states of Eqs. (S3) and (S4) of the supplementary material of Sci. Rep. 7, 11534 (2017)
-    # (excluding magnetic sources)
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     z: Vector including the z coordinates (in m)
-    #     z0: Source coordinate (in m)
-    #     gee11, gee22, gee23, gme12, gme13, gme21: Green's dyadics
-    # Outputs:
-    #     rho_if_TE: Interference density of states for TE, Eq. (S3) of the supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     rho_if_TM: Interference density of states for TM, Eq. (S4) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate the interference densities of states of Eqs. (S3) and (S4) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    (excluding magnetic sources)
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    z: Vector including the z coordinates (in m)
+    z0: Source coordinate (in m)
+    gee11, gee22, gee23, gme12, gme13, gme21: Green's dyadics
+    
+    Returns:
+    rho_if_TE: Interference density of states for TE, Eq. (S3) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    rho_if_TM: Interference density of states for TM, Eq. (S4) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+
     k0 = 2*pi/wl
     indexit = np.nonzero(z>z0)
     index = indexit[0][0]
@@ -429,19 +462,23 @@ def IFDOS_TETM_electric_sources(eps,mu,N,wl,z,z0,gee11,gee22,gee23,gme12,gme13,g
 
 
 def NLDOS_electric_sources(eps,N,wl,z,z0,gee11,gee22,gee33,gee23,gee32,gme12,gme13,gme21,gme31):
-    # Calculate the nonlocal densities of states of Eqs. (30) and (31) of Appendix A of Phys. Rev. E 98, 063304 (2018).
-    # (excluding magnetic sources)
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     z: Vector including the z coordinates (in m)
-    #     z0: Source coordinate (in m)
-    #     gee11, gee22, gee33, gee23, gee32, gme12, gme13, gme21, gme31: Green's dyadics
-    # Outputs:
-    #     rho_nl_e: Electric nonlocal density of states, Eq. (30) of Appendix A of Phys. Rev. E 98, 063304 (2018)
-    #     rho_nl_m: Magnetic nonlocal density of states, Eq. (31) of Appendix A of Phys. Rev. E 98, 063304 (2018)
+    """
+    Calculate the nonlocal densities of states of Eqs. (30) and (31) of Appendix A of Phys. Rev. E 98, 063304 (2018).
+    (excluding magnetic sources)
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    z: Vector including the z coordinates (in m)
+    z0: Source coordinate (in m)
+    gee11, gee22, gee33, gee23, gee32, gme12, gme13, gme21, gme31: Green's dyadics
+    
+    Returns:
+    rho_nl_e: Electric nonlocal density of states, Eq. (30) of Appendix A of Phys. Rev. E 98, 063304 (2018)
+    rho_nl_m: Magnetic nonlocal density of states, Eq. (31) of Appendix A of Phys. Rev. E 98, 063304 (2018)
+    """
+
     k0 = 2*pi/wl
     indexit = np.nonzero(z>z0)
     index = indexit[0][0]
@@ -457,21 +494,25 @@ def NLDOS_electric_sources(eps,N,wl,z,z0,gee11,gee22,gee33,gee23,gee32,gme12,gme
 
 
 def RTE_coefficients_TE(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE):
-    # Calculate the coefficients for the interference-aware radiative transfer model for TE modes
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    # Outputs:
-    #     alphap: The alpha+ coefficient of Eq. (S13), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     alpham: The alpha- coefficient of Eq. (S13), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     betap: The beta+ coefficient of Eq. (S14), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     betam: The beta- coefficient of Eq. (S14), supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate the coefficients for the interference-aware radiative transfer model for TE modes
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    
+    Returns:
+    alphap: The alpha+ coefficient of Eq. (S13), supplementary material of Sci. Rep. 7, 11534 (2017)
+    alpham: The alpha- coefficient of Eq. (S13), supplementary material of Sci. Rep. 7, 11534 (2017)
+    betap: The beta+ coefficient of Eq. (S14), supplementary material of Sci. Rep. 7, 11534 (2017)
+    betam: The beta- coefficient of Eq. (S14), supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+
     eps_z = distribute_parameter(eps,N)
     mu_z = distribute_parameter(mu,N)
     k0 = 2*pi/wl
@@ -515,20 +556,25 @@ def RTE_coefficients_TE(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE):
 
 
 def RTE_coefficients_TM(eps,mu,N,wl,kx,gamma_l_TM,gamma_r_TM):
-    # Calculate the coefficients for the interference-aware radiative transfer model for TM modes
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    # Outputs:
-    #     alphap: The alpha+ coefficient of Eq. (S15), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     alpham: The alpha- coefficient of Eq. (S15), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     betap: The beta+ coefficient of Eq. (S16), supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     betam: The beta- coefficient of Eq. (S16), supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate the coefficients for the interference-aware radiative transfer model for TM modes
+    
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    
+    Returns:
+    alphap: The alpha+ coefficient of Eq. (S15), supplementary material of Sci. Rep. 7, 11534 (2017)
+    alpham: The alpha- coefficient of Eq. (S15), supplementary material of Sci. Rep. 7, 11534 (2017)
+    betap: The beta+ coefficient of Eq. (S16), supplementary material of Sci. Rep. 7, 11534 (2017)
+    betam: The beta- coefficient of Eq. (S16), supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+
     eps_z = distribute_parameter(eps,N)
     mu_z = distribute_parameter(mu,N)
     k0 = 2*pi/wl
@@ -572,24 +618,28 @@ def RTE_coefficients_TM(eps,mu,N,wl,kx,gamma_l_TM,gamma_r_TM):
 
 
 def LDOS_derivatives(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
-    # Calculate the derivatives of the local densities of states
-    # Inputs:
-    #     eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     N: Vector including the intended number of datapoints in each layer
-    #     wl: Wavelength of light in vacuum (in m)
-    #     kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #     gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #     gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #     gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #     gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    # Outputs:
-    #     drho_TE: Derivative of the LDOS for TE, Eq. (S7) of the supplementary material of Sci. Rep. 7, 11534 (2017)
-    #     drho_TM: Derivative of the LDOS for TM, Eq. (S8) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+    Calculate the derivatives of the local densities of states
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    
+    Returns:
+    drho_TE: Derivative of the LDOS for TE, Eq. (S7) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    drho_TM: Derivative of the LDOS for TM, Eq. (S8) of the supplementary material of Sci. Rep. 7, 11534 (2017)
+    """
+
     k0 = 2*pi/wl
     Ep = hplanck*c/wl/q
-    omega = 2*pi*Ep*q/hplanck # Why the **** am I doing this by first calculating Ep, which is not needed elsewhere in this function?? Totally ******* idiotic.
+    omega = 2*pi*Ep*q/hplanck
     eps_z = distribute_parameter(eps,N)
     mu_z = distribute_parameter(mu,N)
     
@@ -611,33 +661,37 @@ def LDOS_derivatives(eps,mu,N,wl,kx,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
 
 
 def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,epssubsR=None):
-    # Solve photon numbers, Poynting vectors and recombination-generation rates for a
-    # single energy Ep and desired K numbers with source coordinates z0
-    # Inputs:
-    #    eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    #     Ep: Photon energy (in eV)
-    #     kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     z0: Vector of source coordinates (in m)
-    #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
-    #     T: Temperature in K
-    #     epssubsL: Permittivity of the semi-infinite region to the left; if not given, eps[0] is used.
-    #     epssubsR: Permittivity of the semi-infinite region to the right; if not given, eps[-1] is used.
-    # Outputs:
-    #     pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
-    #        See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
-    #     pdown_TE: Leftward-propagating photon number in TE modes as a function of K and z, similarly as pup_TE
-    #     pup_TM: Rightward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
-    #     pdown_TM: Leftward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
-    #     P_TE: Spectral radiance in TE modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
-    #     P_TM: Spectral radiance in TM modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
-    #     rad_TE: Net recombination-generation rate in TE modes as a function of K and z, calculated as a derivative of P_TE.
-    #     rad_TM: Net recombination-generation rate in TM modes as a function of K and z, calculated as a derivative of P_TM.
-    #     qte_w: Net recombination-generation rate in TE modes as a function of z (rad_TE integrated over K)
-    #     qtm_w: Net recombination-generation rate in TM modes as a function of z (rad_TM integrated over K)
+    """
+    Solve photon numbers, Poynting vectors and recombination-generation rates for a
+    single energy Ep and desired K numbers with source coordinates z0
     
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the number of datapoints in each layer
+    Ep: Photon energy (in eV)
+    kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    z0: Vector of source coordinates (in m)
+    dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    T: Temperature in K
+    epssubsL: Permittivity of the semi-infinite region to the left; if not given, eps[0] is used.
+    epssubsR: Permittivity of the semi-infinite region to the right; if not given, eps[-1] is used.
+    
+    Returns:
+    pup_TE: Rightward-propagating photon number in TE modes as a function of K and z, as in Eq. (5) of Sci. Rep. 7, 11534 (2017).
+    See also Eq. (8) of Phys. Rev. A 92, 033839 (2015).
+    pdown_TE: Leftward-propagating photon number in TE modes as a function of K and z, similarly as pup_TE
+    pup_TM: Rightward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
+    pdown_TM: Leftward-propagating photon number in TM modes as a function of K and z, similarly as pup_TE
+    P_TE: Spectral radiance in TE modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
+    P_TM: Spectral radiance in TM modes as a function of K and z, based on Eq. (6) of Phys. Rev. A 92, 033839 (2015).
+    rad_TE: Net recombination-generation rate in TE modes as a function of K and z, calculated as a derivative of P_TE.
+    rad_TM: Net recombination-generation rate in TM modes as a function of K and z, calculated as a derivative of P_TM.
+    qte_w: Net recombination-generation rate in TE modes as a function of z (rad_TE integrated over K)
+    qtm_w: Net recombination-generation rate in TM modes as a function of z (rad_TM integrated over K)
+    """
+
     omega = 2*pi*Ep*q/hplanck
     z = distribute_z_uneven(L,N)
     
@@ -734,23 +788,28 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
 
 
 def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
-    # Calculate the complex electric field amplitudes (a.u.) of the TE and TM fields based on Eq. (A3) of
-    # Phys. Rev. E 98, 063304 (2018), assuming an equally strong source amplitude in each direction at each source point.
-    # Inputs:
-    #    eps: Vector including the permittivity in each layer
-    #     mu: Vector including the permeability in each layer
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    #     Ep: Photon energy (in eV)
-    #     kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
-    #     z0: Vector of source coordinates (in m)
-    #     epssubs: Permittivity of the semi-infinite regions on both sides. If not given, eps[0] is used for the one
-    #       on the left-hand side and eps[-1] for the one on the right-hand side. TODO: update this to have epssubsL
-    #       and epssubsR similarly as for instance solve_optical_properties_single_E.
-    # Outputs:
-    #     E1: Complex amplitude of the TE electric field as a function of K and z
-    #     E2: Complex amplitude of the in-plane component of the TM electric field as a function of K and z
-    #     E3: Complex amplitude of the normal component of the TM electric field as a function of K and z
+    """
+    Calculate the complex electric field amplitudes (a.u.) of the TE and TM fields based on Eq. (A3) of
+    Phys. Rev. E 98, 063304 (2018), assuming an equally strong source amplitude in each direction at each source point.
+    
+    Parameters:
+    eps: Vector including the permittivity in each layer
+    mu: Vector including the permeability in each layer
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the number of datapoints in each layer
+    Ep: Photon energy (in eV)
+    kx: Vector of K values (lateral components of the k vector, essentially propagation directions) (in 1/m)
+    z0: Vector of source coordinates (in m)
+    epssubs: Permittivity of the semi-infinite regions on both sides. If not given, eps[0] is used for the one
+    on the left-hand side and eps[-1] for the one on the right-hand side. TODO: update this to have epssubsL
+    and epssubsR similarly as for instance solve_optical_properties_single_E.
+    
+    Returns:
+    E1: Complex amplitude of the TE electric field as a function of K and z
+    E2: Complex amplitude of the in-plane component of the TM electric field as a function of K and z
+    E3: Complex amplitude of the normal component of the TM electric field as a function of K and z
+    """
+
     wl = hplanck*c/Ep/q
     k0 = 2*pi/wl
     
@@ -796,28 +855,32 @@ def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
 
 
 def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=np.array([]),epssubsR=np.array([])):
-    # Solve recombination-generation as a function of position and photon
-    # energy Ep with source coordinates z0.
-    # See the function solve_optical_properties_single_E above for equations.
-    # Inputs:
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    #    eps: Matrix including the permittivity in each layer vs. Ep
-    #     mu: Matrix including the permeability in each layer vs. Ep
-    #     Ep: Vector including photon energies (in eV)
-    #     Kmax: Maximum in-plane k number to be used (in 1/m)
-    #    N_K: Desired number of in-plane k number values for which to perform the calculation
-    #     z0: Vector of source coordinates (in m)
-    #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
-    #     T: Temperature in K
-    #     epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
-    #       If not given, the leftmost region described by L is assumed to continue to infinity.
-    #     epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
-    #       If not given, the rightmost region described by L is assumed to continue to infinity.
-    # Outputs:
-    #     qte_w: Net recombination-generation rate in TE modes as a function of Ep and z (rad_TE integrated over K)
-    #     qtm_w: Net recombination-generation rate in TM modes as a function of Ep and z (rad_TM integrated over K)
+    """
+    Solve recombination-generation as a function of position and photon
+    energy Ep with source coordinates z0.
+    See the function solve_optical_properties_single_E above for equations.
     
+    Parameters:
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the number of datapoints in each layer
+    eps: Matrix including the permittivity in each layer vs. Ep
+    mu: Matrix including the permeability in each layer vs. Ep
+    Ep: Vector including photon energies (in eV)
+    Kmax: Maximum in-plane k number to be used (in 1/m)
+    N_K: Desired number of in-plane k number values for which to perform the calculation
+    z0: Vector of source coordinates (in m)
+    dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    T: Temperature in K
+    epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
+    If not given, the leftmost region described by L is assumed to continue to infinity.
+    epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
+    If not given, the rightmost region described by L is assumed to continue to infinity.
+    
+    Returns:
+    qte_w: Net recombination-generation rate in TE modes as a function of Ep and z (rad_TE integrated over K)
+    qtm_w: Net recombination-generation rate in TM modes as a function of Ep and z (rad_TM integrated over K)
+    """
+
     z = distribute_z_uneven(L,N)
     
     qte_w = np.zeros((Ep.size, z.size), dtype=complex)
@@ -845,27 +908,31 @@ def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
 
 
 def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=np.array([]),epssubsR=np.array([])):
-    # Solve radiances as a function of position and photon
-    # energy Ep with source coordinates z0.
-    # See the function solve_optical_properties_single_E above for equations.
-    # Inputs:
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    #    eps: Matrix including the permittivity in each layer vs. Ep
-    #     mu: Matrix including the permeability in each layer vs. Ep
-    #     Ep: Vector including photon energies (in eV)
-    #     Kmax: Maximum in-plane k number to be used (in 1/m)
-    #    N_K: Desired number of in-plane k number values to perform the calculation for
-    #     z0: Vector of source coordinates (in m)
-    #     dEF: Quasi-Fermi level separation at the source coordinates (in eV)
-    #     T: Temperature in K
-    #     epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
-    #       If not given, the leftmost region described by L is assumed to continue to infinity.
-    #     epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
-    #       If not given, the rightmost region described by L is assumed to continue to infinity.
-    # Outputs:
-    #     PTE_w: Spectral radiance in TE modes as a function of Ep and z (P_TE integrated over K)
-    #     PTM_w: Spectral radiance in TM modes as a function of Ep and z (P_TM integrated over K)
+    """
+    Solve radiances as a function of position and photon
+    energy Ep with source coordinates z0.
+    See the function solve_optical_properties_single_E above for equations.
+    
+    Parameters:
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the number of datapoints in each layer
+    eps: Matrix including the permittivity in each layer vs. Ep
+    mu: Matrix including the permeability in each layer vs. Ep
+    Ep: Vector including photon energies (in eV)
+    Kmax: Maximum in-plane k number to be used (in 1/m)
+    N_K: Desired number of in-plane k number values to perform the calculation for
+    z0: Vector of source coordinates (in m)
+    dEF: Quasi-Fermi level separation at the source coordinates (in eV)
+    T: Temperature in K
+    epssubsL: Vector including the permittivity of the semi-infinite region to the left as a function of Ep.
+    If not given, the leftmost region described by L is assumed to continue to infinity.
+    epssubsR: Vector including the permittivity of the semi-infinite region to the right as a function of Ep.
+    If not given, the rightmost region described by L is assumed to continue to infinity.
+    
+    Returns:
+    PTE_w: Spectral radiance in TE modes as a function of Ep and z (P_TE integrated over K)
+    PTM_w: Spectral radiance in TM modes as a function of Ep and z (P_TM integrated over K)
+    """
 
     z = distribute_z_uneven(L,N)
 
@@ -898,8 +965,11 @@ def calculate_radiances_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
 
 
 def theta_function(K,nr,k0):
-    # Just a help function for the propagation_angle functions below.
-    # Not intended to be used outside of those.
+    """
+    Just a help function for the propagation_angle functions below.
+    Not intended to be used outside of those.
+    """
+
     warnings.warn("deprecated", RuntimeWarning)
     thetarad =np.arcsin(K/nr/k0)
     return thetarad
@@ -907,17 +977,21 @@ def theta_function(K,nr,k0):
 
 
 def propagation_angles(Ep,K,eps,mu):
-    # Help function to calculate the propagation angles corresponding to given in-plane k numbers
-    # in the material specified by eps and mu for the single photon energy Ep
-    # NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
-    # Inputs:
-    #     Ep: Photon energy (in eV)
-    #     K: Vector including the in-plane k numbers (in 1/m)
-    #     eps: Permittivity of the material corresponding to energy Ep
-    #     mu: Permeability of the material corresponding to energy Ep
-    # Outputs:
-    #     theta: Vector including the propagation angles corresponding to K (in degrees)
+    """
+    Help function to calculate the propagation angles corresponding to given in-plane k numbers
+    in the material specified by eps and mu for the single photon energy Ep
+    NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
     
+    Parameters:
+    Ep: Photon energy (in eV)
+    K: Vector including the in-plane k numbers (in 1/m)
+    eps: Permittivity of the material corresponding to energy Ep
+    mu: Permeability of the material corresponding to energy Ep
+    
+    Returns:
+    theta: Vector including the propagation angles corresponding to K (in degrees)
+    """
+
     nr = np.real(np.sqrt(eps*mu))
     wl = hplanck*c/Ep/q
     k0 = 2*pi/wl
@@ -933,14 +1007,19 @@ def propagation_angles(Ep,K,eps,mu):
 
 
 def propagation_angles_gaas(Ep,K):
-    # Help function to calculate the propagation angles corresponding to given in-plane k numbers
-    # in GaAs for the single photon energy Ep.
-    # NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
-    # Inputs:
-    #     Ep: Photon energy (in eV)
-    #     K: Vector including the in-plane k numbers (in 1/m)
-    # Outputs:
-    #     theta: Vector including the propagation angles corresponding to K (in degrees)
+    """
+    Help function to calculate the propagation angles corresponding to given in-plane k numbers
+    in GaAs for the single photon energy Ep.
+    NOTE: The function sets the propagation angle of evanescent modes to 90 degrees.
+    
+    Parameters:
+    Ep: Photon energy (in eV)
+    K: Vector including the in-plane k numbers (in 1/m)
+    
+    Returns:
+    theta: Vector including the propagation angles corresponding to K (in degrees)
+    """
+
     eps = perm.permittivity_gaas_palik(Ep)
     mu = 1
     nr = np.real(np.sqrt(eps*mu))
@@ -958,13 +1037,18 @@ def propagation_angles_gaas(Ep,K):
 
 
 def Ks_gaas(Ep,theta):
-    # Help function to calculate the Ks corresponding to given angles
-    # in GaAs for the single photon energy Ep. Forces K to be real.
-    # Inputs:
-    #     Ep: Photon energy (in eV)
-    #     theta: Vector including the propagation angles corresponding to K (in degrees)
-    # Outputs:
-    #     K: Vector including the in-plane k numbers (in 1/m)
+    """
+    Help function to calculate the Ks corresponding to given angles
+    in GaAs for the single photon energy Ep. Forces K to be real.
+    
+    Parameters:
+    Ep: Photon energy (in eV)
+    theta: Vector including the propagation angles corresponding to K (in degrees)
+    
+    Returns:
+    K: Vector including the in-plane k numbers (in 1/m)
+    """
+
     eps = perm.permittivity_gaas_palik(Ep)
     mu = 1
     nr = np.real(np.sqrt(eps*mu))
@@ -979,13 +1063,18 @@ def Ks_gaas(Ep,theta):
 
 
 def Ks_gaas_complex(Ep,theta):
-    # Help function to calculate the Ks corresponding to given angles
-    # in GaAs for the single photon energy Ep. Allows K to be complex.
-    # Inputs:
-    #     Ep: Photon energy (in eV)
-    #     theta: Vector including the propagation angles corresponding to K (in degrees)
-    # Outputs:
-    #     K: Vector including the in-plane k numbers (in 1/m)
+    """
+    Help function to calculate the Ks corresponding to given angles
+    in GaAs for the single photon energy Ep. Allows K to be complex.
+    
+    Parameters:
+    Ep: Photon energy (in eV)
+    theta: Vector including the propagation angles corresponding to K (in degrees)
+    
+    Returns:
+    K: Vector including the in-plane k numbers (in 1/m)
+    """
+
     eps = perm.permittivity_gaas_palik(Ep)
     mu = 1
     nr = np.sqrt(eps*mu)
@@ -1000,24 +1089,28 @@ def Ks_gaas_complex(Ep,theta):
 
 
 def reflectance_transmission_kx(eps,mu,N,wl,kx,z,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM):
-    # Function to calculate the amplitude reflection coefficients for rightward and leftward
-    # TE and TM modes
-    # Inputs:
-    #   eps: Permittivity of the material corresponding to wavelength wl
-    #   mu : Permeability of the material corresponding to wavelength wl
-    #   N: Vector including the number of datapoints in each layer
-    #   wl: Wavelength of light in vacuum (in m)
-    #   kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
-    #   z: Vector including the z coordinates (in m)
-    #   gamma_l_TE: Optical admittance for TE for leftward-propagating modes
-    #   gamma_r_TE: Optical admittance for TE for rightward-propagating modes
-    #   gamma_r_TM: Optical admittance for TM for rightward-propagating modes
-    #   gamma_l_TM: Optical admittance for TM for leftward-propagating modes
-    # Outputs:
-    #   r_l_TE: Amplitude reflection coefficient for leftward TE modes as a function of z
-    #   r_r_TE: Amplitude reflection coefficient for rightward TE modes as a function of z
-    #   r_r_TM: Amplitude reflection coefficient for rightward TM modes as a function of z
-    #   r_l_TM: Amplitude reflection coefficient for leftward TM modes as a function of z
+    """
+    Function to calculate the amplitude reflection coefficients for rightward and leftward
+    TE and TM modes
+    
+    Parameters:
+    eps: Permittivity of the material corresponding to wavelength wl
+    mu : Permeability of the material corresponding to wavelength wl
+    N: Vector including the number of datapoints in each layer
+    wl: Wavelength of light in vacuum (in m)
+    kx: Lateral component of the k vector, essentially propagation direction (in 1/m)
+    z: Vector including the z coordinates (in m)
+    gamma_l_TE: Optical admittance for TE for leftward-propagating modes
+    gamma_r_TE: Optical admittance for TE for rightward-propagating modes
+    gamma_r_TM: Optical admittance for TM for rightward-propagating modes
+    gamma_l_TM: Optical admittance for TM for leftward-propagating modes
+    
+    Returns:
+    r_l_TE: Amplitude reflection coefficient for leftward TE modes as a function of z
+    r_r_TE: Amplitude reflection coefficient for rightward TE modes as a function of z
+    r_r_TM: Amplitude reflection coefficient for rightward TM modes as a function of z
+    r_l_TM: Amplitude reflection coefficient for leftward TM modes as a function of z
+    """
 
     eps_z = distribute_parameter(eps,N)
     mu_z = distribute_parameter(mu,N)
