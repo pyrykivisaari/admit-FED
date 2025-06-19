@@ -72,28 +72,28 @@ def get_permittivities(epslist,Ep):
     eps_air = np.ones(Ep.size)
     
     eps = np.zeros((len(epslist),Ep.size), dtype=complex)
-    for i in range(len(epslist)):
-        if epslist[i]=='gaas':
+    for i, epsi in enumerate(epslist):
+        if epsi=='gaas':
             eps[i] = eps_gaas
-        elif epslist[i]=='gaas_lossless':
+        elif epsi=='gaas_lossless':
             eps[i] = np.abs(eps_gaas)+1e-6*1j
-        elif epslist[i]=='algaas':
+        elif epsi=='algaas':
             eps[i] = eps_algaas
-        elif epslist[i]=='au':
+        elif epsi=='au':
             eps[i] = eps_au
-        elif epslist[i]=='gainp':
+        elif epsi=='gainp':
             eps[i] = eps_gainp
-        elif epslist[i]=='ingap':
+        elif epsi=='ingap':
             eps[i] = eps_gainp
-        elif epslist[i]=='ag':
+        elif epsi=='ag':
             eps[i] = eps_ag
-        elif epslist[i]=='mgf2':
+        elif epsi=='mgf2':
             eps[i] = eps_mgf2
-        elif epslist[i]=='zns':
+        elif epsi=='zns':
             eps[i] = eps_zns
-        elif epslist[i]=='air':
+        elif epsi=='air':
             eps[i] = eps_air
-        elif epslist[i]=='lossy_air':
+        elif epsi=='lossy_air':
             eps[i] = eps_air+1j*1e-3
         else:
             print('Warning: unknown material. eps set to zero.')
