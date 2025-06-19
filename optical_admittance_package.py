@@ -20,13 +20,17 @@ mu0 = 1.257e-6
 
 
 def distribute_z_uneven(L,N):
-    # Create a vector of z coordinates.
-    # Inputs:
-    #     L: Vector including the lengths of subsequent layers (in m)
-    #     N: Vector including the intended number of datapoints in each layer
-    # Outputs:
-    #     z: Vector including the z coordinates (in m)
+    """
+    Create a vector of z coordinates.
+
+    Parameters:
+    L: Vector including the lengths of subsequent layers (in m)
+    N: Vector including the intended number of datapoints in each layer
     
+    Returns:
+    z: Vector including the z coordinates (in m)
+    """
+
     z = np.zeros(np.sum(N))
     last = 0
     position = 0
@@ -43,14 +47,19 @@ def distribute_z_uneven(L,N):
 
 
 def distribute_parameter(param,N):
-    # Create a vector with a chosen material parameter that corresponds to the
-    # z coordinates of a structure.
-    # Inputs:
-    #     param: Vector including the material parameter of subsequent layers
-    #     N: Vector including the intended number of datapoints in each layer
-    # Outputs:
-    #     param_z: Vector including the material parameter at each z coordinate of the structure
+    """
+    Create a vector with a chosen material parameter that corresponds to the
+    z coordinates of a structure.
     
+    Parameters:
+    param: Vector including the material parameter of subsequent layers
+    N: Vector including the number of datapoints in each layer (should be the
+    same as the one given for distribute_z_uneven)
+    
+    Returns:
+    param_z: Vector including the material parameter at each z coordinate of the structure
+    """
+
     param_z = np.zeros(np.sum(N), dtype=complex)
     position = 0
     
