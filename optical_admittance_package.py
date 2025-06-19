@@ -35,11 +35,11 @@ def distribute_z_uneven(L,N):
     last = 0
     position = 0
     
-    for k in range(L.size):
-        zk = np.linspace(last, last+L[k], N[k])
+    for k, Lk in enumerate(L):
+        zk = np.linspace(last, last+Lk, N[k])
         z[position:(position+N[k])] = zk
         
-        last = last + L[k]
+        last = last + Lk
         position += N[k]
     
     return z
@@ -63,9 +63,9 @@ def distribute_parameter(param,N):
     param_z = np.zeros(np.sum(N), dtype=complex)
     position = 0
     
-    for j in range(N.size):
-        param_z[position:(position+N[j])] = param[j]
-        position += N[j]
+    for j, Nj in enumerate(N):
+        param_z[position:(position+Nj)] = param[j]
+        position += Nj
     
     return param_z
 
@@ -140,17 +140,17 @@ def admittance_layer_structure_TE(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
     gamma = np.zeros(z.size, dtype=complex)
     position = 0
     
-    for j in range(N.size):
+    for j, Nj in enumerate(N):
         if j == 0:
             init = eta_s
         else:
             init = gammazj[-1]
-        zj = z[position:(position+N[j])] # Note that zj is a view of z, not a copy as in matlab
+        zj = z[position:(position+Nj)] # Note that zj is a view of z, not a copy as in matlab
         kz = np.sqrt(eps[j]*mu[j]*k0**2-kx**2)
         kappa = -np.sqrt(eps[j]*mu[j]-kx**2/k0**2)/mu[j]
         gammazj = -kappa*np.tanh(1j*kz*(zj-zj[0])+np.arctanh(-init/kappa+1e-15*1j))
-        gamma[position:(position+N[j])] = gammazj
-        position += N[j]
+        gamma[position:(position+Nj)] = gammazj
+        position += Nj
     
     return gamma
 
@@ -182,17 +182,17 @@ def admittance_layer_structure_TM(eps,mu,N,wl,kx,z,epssubs,musubs,sgn):
     gamma = np.zeros(z.size, dtype=complex)
     position = 0
     
-    for j in range(N.size):
+    for j, Nj in enumerate(N):
         if j == 0:
             init = eta_s
         else:
             init = gammazj[-1]
-        zj = z[position:(position+N[j])] # Note that zj is a view of z, not a copy as in matlab
+        zj = z[position:(position+Nj)] # Note that zj is a view of z, not a copy as in matlab
         kz = np.sqrt(eps[j]*mu[j]*k0**2-kx**2)
         kappa = -np.sqrt(eps[j]*mu[j]-kx**2/k0**2)/eps[j]
         gammazj = -kappa*np.tanh(1j*kz*(zj-zj[0])+np.arctanh(-init/kappa+1e-15*1j))
-        gamma[position:(position+N[j])] = gammazj
-        position += N[j]
+        gamma[position:(position+Nj)] = gammazj
+        position += Nj
     
     return gamma
 
@@ -732,24 +732,24 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
     rad_TM = np.zeros((kx.size, z.size), dtype=complex)
     
     print("Solving for E =", Ep, "eV...")
-    for j in range(kx.size):
+    for j, kxj in enumerate(kx):
         gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = calculate_all_admittances_uneven( \
-            eps,mu,L,N,wl,kx[j],epssubs_l,musubs_l,epssubs_r,musubs_r)
-        rho_e, rho_m, rho_TE, rho_TM = LDOSes(eps,mu,N,wl,kx[j],gamma_l_TE,gamma_r_TE, \
+            eps,mu,L,N,wl,kxj,epssubs_l,musubs_l,epssubs_r,musubs_r)
+        rho_e, rho_m, rho_TE, rho_TM = LDOSes(eps,mu,N,wl,kxj,gamma_l_TE,gamma_r_TE, \
             gamma_r_TM,gamma_l_TM)
         
         rho_nl_TE = np.zeros((z0.size, z.size), dtype=complex)
         rho_nl_TM = np.zeros((z0.size, z.size), dtype=complex)
         rho_if_TE = np.zeros((z0.size, z.size), dtype=complex)
         rho_if_TM = np.zeros((z0.size, z.size), dtype=complex)
-        for k in range(z0.size):
+        for k, z0k in enumerate(z0):
             gee11, gee22, gee33, gee23, gee32 = electric_greens_functions(eps,mu,N,wl, \
-                kx[j],z,z0[k],gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            gme12, gme13, gme21, gme31 = exchange_greens_functions_me(eps,mu,N,wl,kx[j], \
-                z,z0[k],gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
-            rho_nl_TE[k], rho_nl_TM[k] = NLDOS_TETM_electric_sources(eps,mu,N,wl,kx[j],z,z0[k], \
+                kxj,z,z0k,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
+            gme12, gme13, gme21, gme31 = exchange_greens_functions_me(eps,mu,N,wl,kxj, \
+                z,z0k,gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
+            rho_nl_TE[k], rho_nl_TM[k] = NLDOS_TETM_electric_sources(eps,mu,N,wl,kxj,z,z0k, \
                 gee11,gee22,gee33,gee23,gee32,gme12,gme13,gme21,gme31)
-            rho_if_TE[k], rho_if_TM[k] = IFDOS_TETM_electric_sources(eps,mu,N,wl,z,z0[k], \
+            rho_if_TE[k], rho_if_TM[k] = IFDOS_TETM_electric_sources(eps,mu,N,wl,z,z0k, \
                 gee11,gee22,gee23,gme12,gme13,gme21)
         # Upward and downward photon numbers calculated using Eq. (5) of Sci.
         # Rep. 7, 11534 (2017).
@@ -758,12 +758,12 @@ def solve_optical_properties_single_E(eps,mu,L,N,Ep,kx,z0,dEF,T,epssubsL=None,ep
         pup_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM+rho_if_TM)*eta,z0,axis=0)
         pdown_TM[j] = 1/rho_TM*np.trapezoid((rho_nl_TM-rho_if_TM)*eta,z0,axis=0)
         
-        alphap_TE, alpham_TE, betap_TE, betam_TE = RTE_coefficients_TE(eps,mu,N,wl,kx[j], \
+        alphap_TE, alpham_TE, betap_TE, betam_TE = RTE_coefficients_TE(eps,mu,N,wl,kxj, \
             gamma_l_TE,gamma_r_TE)
-        alphap_TM, alpham_TM, betap_TM, betam_TM = RTE_coefficients_TM(eps,mu,N,wl,kx[j], \
+        alphap_TM, alpham_TM, betap_TM, betam_TM = RTE_coefficients_TM(eps,mu,N,wl,kxj, \
             gamma_l_TM,gamma_r_TM)
         
-        drho_TE, drho_TM = LDOS_derivatives(eps,mu,N,wl,kx[j],gamma_l_TE,gamma_r_TE,gamma_r_TM, \
+        drho_TE, drho_TM = LDOS_derivatives(eps,mu,N,wl,kxj,gamma_l_TE,gamma_r_TE,gamma_r_TM, \
             gamma_l_TM)
         
         P_TE[j] = Ep*q*c*rho_TE/2*(pup_TE[j]-pdown_TE[j])/nr_z
@@ -833,17 +833,17 @@ def Efield_single_E(eps,mu,L,N,Ep,kx,z0,epssubs=None):
     E2 = np.zeros((kx.size, z.size), dtype=complex)
     E3 = np.zeros((kx.size, z.size), dtype=complex)
     print("Solving for E =", Ep, "eV...")
-    for j in range(kx.size):
+    for j, kxj in enumerate(kx):
         gamma_r_TE, gamma_l_TE, gamma_r_TM, gamma_l_TM = calculate_all_admittances_uneven( \
-            eps,mu,L,N,wl,kx[j],epssubs_l,musubs_l,epssubs_r,musubs_r)
+            eps,mu,L,N,wl,kxj,epssubs_l,musubs_l,epssubs_r,musubs_r)
         gee11 = np.zeros((z0.size, z.size), dtype=complex)
         gee22 = np.zeros((z0.size, z.size), dtype=complex)
         gee33 = np.zeros((z0.size, z.size), dtype=complex)
         gee23 = np.zeros((z0.size, z.size), dtype=complex)
         gee32 = np.zeros((z0.size, z.size), dtype=complex)
-        for k in range(z0.size):
+        for k, z0k in enumrate(z0):
             gee11[k], gee22[k], gee33[k], gee23[k], gee32[k] = \
-                electric_greens_functions(eps,mu,N,wl,kx[j],z,z0[k], \
+                electric_greens_functions(eps,mu,N,wl,kxj,z,z0k, \
                 gamma_l_TE,gamma_r_TE,gamma_r_TM,gamma_l_TM)
         E1[j] = np.trapezoid(gee11*1,z0,axis=0)
         E2[j] = np.trapezoid(gee22*1+gee23*1,z0,axis=0)
@@ -886,22 +886,22 @@ def solve_recombination_energy_spread(L,N,eps,mu,Ep,Kmax,N_K,z0,dEF,T,epssubsL=n
     qte_w = np.zeros((Ep.size, z.size), dtype=complex)
     qtm_w = np.zeros((Ep.size, z.size), dtype=complex)
     
-    for i in range(Ep.size):
+    for i, Epi in enumerate(Ep):
         K = np.linspace(0, Kmax[i], N_K)
         
         if epssubsL.any():
             if epssubsR.any():
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T,epssubsL[i],epssubsR[i])
+                    eps[i],mu[i],L,N,Epi,K,z0,dEF,T,epssubsL[i],epssubsR[i])
             else:
                 pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                     qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                    eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T,epssubsL[i])
+                    eps[i],mu[i],L,N,Epi,K,z0,dEF,T,epssubsL[i])
         else:
             pup_TE, pdown_TE, pup_TM, pdown_TM, P_TE, P_TM, rad_TE, rad_TM, \
                 qte_w[i], qtm_w[i] = solve_optical_properties_single_E(\
-                eps[i],mu[i],L,N,Ep[i],K,z0,dEF,T)
+                eps[i],mu[i],L,N,Epi,K,z0,dEF,T)
     
     return qte_w, qtm_w
 
