@@ -2,7 +2,7 @@
 import optical_admittance_package as oap
 import numpy as np
 from numpy import pi
-import TF_DDS_functions as tf
+import TF_dev_functions as tf
 import matplotlib.pyplot as plt
 
 c = 299792458 
