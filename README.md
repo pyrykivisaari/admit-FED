@@ -19,7 +19,7 @@ For more documentation on the examples and the code, you may also check through 
 
 ## Credits
 
-Core parts of the methodology were developed during my Academy of Finland postdoc period in the Engineered Nanosystems Group at Aalto University.
+Core parts of the methodology were developed during my Academy of Finland postdoc period as a member of the Engineered Nanosystems Group at Aalto University.
 
 ## Citation
 
