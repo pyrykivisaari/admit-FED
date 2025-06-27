@@ -96,8 +96,8 @@ spectrum_P_E = (spectrum_te_int+spectrum_tm_int)*(Ep*q)*(2*pi*q/hplanck)
 
 if False:
     print("Debug: The output from this should be equal to the emission power printed above")
-    kaka = np.trapezoid(spectrum_P_E,Ep)
-    print(kaka*1e-4)
+    empow = np.trapezoid(spectrum_P_E,Ep)
+    print(empow*1e-4)
 
 plt.figure(figsize=(5.0,2.5),facecolor=(1,1,1))
 plt.plot(Ep,spectrum_P_E.real*1e-4)
