@@ -4,7 +4,6 @@ import numpy as np
 from numpy import pi
 from scipy import integrate
 import sys
-sys.path.append('/u/05/pkivisaa/unix/tutkimus/optical_modeling/python3/permittivities')
 import permittivities as perm
 import warnings
 
